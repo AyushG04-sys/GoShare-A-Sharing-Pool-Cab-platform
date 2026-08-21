@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Map Test</title>
+<link rel="stylesheet" href="leaflet.css">
+<style>
+  body { margin: 0; font-family: sans-serif; }
+  #status { padding: 12px; background: #222; color: #0f0; font-family: monospace; }
+  #map { width: 100vw; height: calc(100vh - 60px); background: red; }
+</style>
+</head>
+<body>
+<div id="status">Loading Leaflet...</div>
+<div id="map"></div>
+
+<script src="leaflet.js"></script>
+<script>
+document.getElementById('status').textContent = 'L is ' + typeof L + ', version: ' + (L ? L.version : 'n/a');
+
+// Try CartoDB
+const map = L.map('map').setView([19.076, 72.8777], 13);
+
+const layers = [
+  { name: 'CartoDB Voyager', url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', opts: {subdomains: 'abcd', maxZoom: 19, attribution: 'CartoDB'} },
+  { name: 'OSM.org', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', opts: {maxZoom: 19, attribution: 'OSM'} },
+  { name: 'Esri', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', opts: {maxZoom: 19, attribution: 'Esri'} }
+];
+
+let currentIdx = 0;
+function tryNextLayer(err) {
+  if (currentIdx >= layers.length) {
+    document.getElementById('status').textContent = 'ALL LAYERS FAILED';
+    return;
+  }
+  const layer = layers[currentIdx++];
+  const tile = L.tileLayer(layer.url, layer.opts);
+  tile.on('tileerror', () => {
+    document.getElementById('status').textContent = 'Layer "' + layer.name + '" FAILED. Trying next...';
+    tryNextLayer();
+  });
+  tile.addTo(map);
+  document.getElementById('status').textContent = 'Trying ' + layer.name + '...';
+}
+tryNextLayer();
+
+L.marker([19.076, 72.8777]).addTo(map)
+  .bindPopup('Mumbai')
+  .openPopup();
+
+document.getElementById('status').textContent += ' | Map initialized';
+</script>
+</body>
+</html>
