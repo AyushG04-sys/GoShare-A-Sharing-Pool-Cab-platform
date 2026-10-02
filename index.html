@@ -1,208 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>GoShare - Login</title>
-<link rel="stylesheet" href="styles.css" />
-<style id="themeStyles">
-  body[data-theme="dark"] { background-color: #111827 !important; color: #f9fafb !important; }
-  body[data-theme="dark"] .login-card { background-color: #1f2937 !important; color: #f9fafb !important; border-color: #374151 !important; }
-  body[data-theme="dark"] input, body[data-theme="dark"] select { background-color: #374151 !important; color: white !important; border-color: #4b5563 !important; }
-  body[data-theme="dark"] h1, body[data-theme="dark"] label, body[data-theme="dark"] p { color: #f9fafb !important; }
-  body[data-theme="dark"] .role-toggle { background: #374151 !important; }
-  body[data-theme="dark"] .phone-wrapper { border-color: #4b5563 !important; }
-  body[data-theme="dark"] .country-code { background-color: #4b5563 !important; color: #f9fafb !important; border-color: #4b5563 !important; }
-  
-  /* Styling for the document upload text in dark mode */
-  body[data-theme="dark"] .doc-label { color: #9ca3af !important; }
-  body[data-theme="dark"] input[type="file"]::file-selector-button { background-color: #4b5563; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
-  
-  .uber-font-style { font-family: system-ui, sans-serif; font-weight: 500; font-size: 36px; letter-spacing: -1.2px; margin: 0 0 8px 0; }
-  .brand-subtitle { color: #6b7280; font-size: 15px; margin-bottom: 28px; }
-  .header-text-container { text-align: center; margin-bottom: 10px; position: relative;}
-  .hidden { display: none !important; }
-  
-  input[type="file"]::file-selector-button { background-color: #e5e7eb; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 10px;}
-</style>
-<script>
-  function toggleTheme() {
-    const body = document.body;
-    const isDark = body.getAttribute('data-theme') === 'dark';
-    body.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    localStorage.setItem('goshare_theme', isDark ? 'light' : 'dark');
-  }
-  if(localStorage.getItem('goshare_theme') === 'dark') {
-      window.addEventListener('DOMContentLoaded', () => document.body.setAttribute('data-theme', 'dark'));
-  }
-</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoShare - Login & Registration</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #0f172a; 
+            color: white;
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+        }
+        .auth-container { 
+            background: #1e293b; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); 
+            width: 100%; 
+            max-width: 400px; 
+            box-sizing: border-box;
+        }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { margin: 0; color: #f8fafc; font-size: 28px; }
+        .header p { color: #94a3b8; font-size: 14px; margin-top: 5px; }
+        
+        .tabs { display: flex; background: #334155; border-radius: 8px; padding: 4px; margin-bottom: 20px; }
+        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 6px; color: #94a3b8; font-weight: 500; transition: 0.3s; font-size: 14px; }
+        .tab.active { background: white; color: black; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group input, .input-group select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #475569; 
+            background: #0f172a;
+            color: white;
+            border-radius: 6px; 
+            box-sizing: border-box; 
+        }
+        .input-group input:focus, .input-group select:focus { outline: none; border-color: #3b82f6; }
+        
+        .primary-btn { 
+            width: 100%; 
+            background: #2563eb; 
+            color: white; 
+            padding: 14px; 
+            border: none; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            margin-top: 10px;
+        }
+        .primary-btn:hover { background: #1d4ed8; }
+        
+        .hidden { display: none !important; }
+        
+        .doc-upload { font-size: 13px; margin-bottom: 12px; color: #cbd5e1; }
+        .doc-upload input { margin-top: 6px; font-size: 12px; }
+        
+        #documentsGroup { background: #334155; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    </style>
 </head>
-<body style="background-color: #f1f5f9; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; transition: 0.3s; padding: 20px; box-sizing: border-box;">
-  
-  <button onclick="toggleTheme()" style="position:absolute; top:20px; right:20px; font-size:24px; background:none; border:none; cursor:pointer;" title="Dark Mode">🌙</button>
+<body data-theme="dark" style="background-color: #0f172a; color: white;">
 
-  <!-- Added max-height and overflow-y to handle the extra fields on smaller screens -->
-  <div class="login-card" style="background: white; padding: 40px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 95vh; overflow-y: auto;">
-    <div class="header-text-container">
-      <h1 class="uber-font-style">GoShare</h1>
-      <p class="brand-subtitle">Share rides, save money</p>
+<div class="auth-container">
+    <div class="header">
+        <h1>GoShare</h1>
+        <p>Share rides, save money</p>
     </div>
 
-    <!-- STEP 1: REGISTRATION DETAILS -->
+    <!-- Role Selection Tabs -->
+    <div class="tabs">
+        <div id="userTab" class="tab active" style="background: white; color: black; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Passenger</div>
+        <div id="driverTab" class="tab">Driver</div>
+    </div>
+
     <div id="step1">
-      <div class="role-toggle" style="display: flex; background: #f3f4f6; border-radius: 12px; padding: 4px; margin-bottom: 24px;">
-        <button id="userTab" class="role-btn active" style="flex: 1; padding: 10px; border: none; background: white; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">User</button>
-        <button id="driverTab" class="role-btn" style="flex: 1; padding: 10px; border: none; background: transparent; border-radius: 8px; font-weight: bold; cursor: pointer; color: #6b7280;">Driver</button>
-      </div>
+        <!-- Auth Form Inputs -->
+        <div class="input-group">
+            <input type="text" id="nameInput" placeholder="Full Name (Required for Register)">
+        </div>
+        <div class="input-group">
+            <input type="tel" id="phoneInput" placeholder="Mobile Number (e.g. 9876543210)">
+        </div>
+        <div class="input-group">
+            <input type="password" id="passwordInput" placeholder="Password">
+        </div>
 
-      <div class="form-group driver-only hidden" id="vehicleGroup" style="margin-bottom: 16px;">
-        <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px;">Vehicle Type</label>
-        <select id="vehicleType" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; outline: none;">
-          <option value="rickshaw">Auto Rickshaw</option>
-          <option value="mini">Mini</option>
-          <option value="cab">Cab</option>
-          <option value="suv">SUV</option>
-        </select>
-      </div>
-      
-      <div class="form-group driver-only hidden" id="plateGroup" style="margin-bottom: 16px;">
-        <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px;">Vehicle Number</label>
-        <input type="text" id="vehicleNumber" placeholder="e.g. MH 12 AB 1234" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; box-sizing: border-box;">
-      </div>
-
-      <!-- NEW: DOCUMENT UPLOAD SECTION -->
-      <div class="form-group driver-only hidden" id="documentsGroup" style="margin-bottom: 24px; padding: 16px; border: 1px dashed #d1d5db; border-radius: 8px; background: rgba(0,0,0,0.02);">
-        <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 12px;">Mandatory Documents</label>
-        
-        <div style="margin-bottom: 12px;">
-          <span class="doc-label" style="display: block; font-size: 12px; color: #4b5563; margin-bottom: 4px;">Driver Photograph</span>
-          <input type="file" id="driverPhoto" accept="image/*" style="width: 100%; font-size: 13px;">
+        <!-- Driver Specific Fields -->
+        <div id="vehicleGroup" class="input-group hidden">
+            <select id="vehicleType">
+                <option value="rickshaw">Auto Rickshaw</option>
+                <option value="mini">Mini</option>
+                <option value="cab">Cab / Sedan</option>
+                <option value="suv">SUV</option>
+            </select>
         </div>
         
-        <div style="margin-bottom: 12px;">
-          <span class="doc-label" style="display: block; font-size: 12px; color: #4b5563; margin-bottom: 4px;">Driving License</span>
-          <input type="file" id="drivingLicense" accept="image/*,.pdf" style="width: 100%; font-size: 13px;">
+        <div id="plateGroup" class="input-group hidden">
+            <input type="text" id="vehicleNumber" placeholder="Vehicle Number (e.g. MH 12 AB 1234)">
         </div>
 
-        <div style="margin-bottom: 12px;">
-          <span class="doc-label" style="display: block; font-size: 12px; color: #4b5563; margin-bottom: 4px;">Vehicle RC Book</span>
-          <input type="file" id="vehicleRC" accept="image/*,.pdf" style="width: 100%; font-size: 13px;">
+        <!-- Document Uploads -->
+        <div id="documentsGroup" class="hidden">
+            <p style="font-weight: 600; font-size: 14px; margin: 0 0 10px 0; color: white;">Upload Documents</p>
+            <div class="doc-upload">
+                <label>Driver Photo:</label><br>
+                <input type="file" id="driverPhoto" accept="image/*">
+            </div>
+            <div class="doc-upload">
+                <label>Driving License:</label><br>
+                <input type="file" id="drivingLicense" accept="image/*,.pdf">
+            </div>
+            <div class="doc-upload">
+                <label>Vehicle RC:</label><br>
+                <input type="file" id="vehicleRC" accept="image/*,.pdf">
+            </div>
+            <div class="doc-upload" style="margin-bottom:0;">
+                <label>Insurance:</label><br>
+                <input type="file" id="vehicleInsurance" accept="image/*,.pdf">
+            </div>
         </div>
 
-        <div>
-          <span class="doc-label" style="display: block; font-size: 12px; color: #4b5563; margin-bottom: 4px;">Vehicle Insurance</span>
-          <input type="file" id="vehicleInsurance" accept="image/*,.pdf" style="width: 100%; font-size: 13px;">
+        <!-- Action Button & Toggle -->
+        <button id="authActionBtn" class="primary-btn">Register</button>
+        
+        <div style="text-align: center; margin-top: 18px;">
+            <a href="#" id="authModeToggle" style="color: #60a5fa; text-decoration: none; font-size: 14px; font-weight: 500;">
+                Already have an account? Login instead.
+            </a>
         </div>
-      </div>
-
-      <div class="form-group" style="margin-bottom: 16px;">
-        <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px;">Full Name</label>
-        <input type="text" id="nameInput" placeholder="Enter your name" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; box-sizing: border-box;">
-      </div>
-
-      <div class="form-group" style="margin-bottom: 24px;">
-        <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px;">Phone Number</label>
-        <div class="phone-wrapper" style="display: flex; border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden;">
-          <span class="country-code" style="background: #f3f4f6; padding: 12px 16px; font-weight: bold; border-right: 1px solid #d1d5db;">+91</span>
-          <input type="text" id="phoneInput" placeholder="98765 43210" style="width: 100%; padding: 12px; border: none; outline: none;">
-        </div>
-      </div>
-      <button id="sendOtpBtn" style="width: 100%; padding: 14px; background: black; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer;">Send OTP</button>
     </div>
+</div>
 
-    <!-- STEP 2: OTP VERIFICATION -->
-    <div id="step2" class="hidden">
-      <p style="text-align: center; margin-bottom: 20px; font-size: 14px; color: #4b5563;">Enter the 4-digit code sent to your phone.</p>
-      <div class="form-group" style="margin-bottom: 24px;">
-        <input type="text" id="loginOtpInput" placeholder="0000" maxlength="4" style="width: 100%; padding: 14px; border: 1.5px solid #d1d5db; border-radius: 8px; outline: none; font-size: 24px; text-align: center; font-weight: bold; letter-spacing: 8px; box-sizing: border-box;">
-      </div>
-      <button id="verifyLoginBtn" style="width: 100%; padding: 14px; background: black; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-bottom: 12px;">Verify & Login</button>
-      <button id="backBtn" style="width: 100%; padding: 14px; background: transparent; color: #6b7280; border: none; font-weight: bold; cursor: pointer;">Back</button>
-    </div>
-
-  </div>
-  <script src="store.js" defer></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const userTab = document.getElementById('userTab');
-      const driverTab = document.getElementById('driverTab');
-      const vehicleGroup = document.getElementById('vehicleGroup');
-      const plateGroup = document.getElementById('plateGroup');
-      const documentsGroup = document.getElementById('documentsGroup');
-      const step1 = document.getElementById('step1');
-      const step2 = document.getElementById('step2');
-
-      let currentRole = 'user';
-      let simulatedOtp = null;
-      let pendingUserObj = null;
-
-      userTab.addEventListener('click', () => {
-        currentRole = 'user';
-        userTab.style.background = 'white'; userTab.style.color = 'black'; userTab.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-        driverTab.style.background = 'transparent'; driverTab.style.color = '#6b7280'; driverTab.style.boxShadow = 'none';
-        if(vehicleGroup) vehicleGroup.classList.add('hidden');
-        if(plateGroup) plateGroup.classList.add('hidden');
-        if(documentsGroup) documentsGroup.classList.add('hidden');
-      });
-
-      driverTab.addEventListener('click', () => {
-        currentRole = 'driver';
-        driverTab.style.background = 'white'; driverTab.style.color = 'black'; driverTab.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-        userTab.style.background = 'transparent'; userTab.style.color = '#6b7280'; userTab.style.boxShadow = 'none';
-        if(vehicleGroup) vehicleGroup.classList.remove('hidden');
-        if(plateGroup) plateGroup.classList.remove('hidden');
-        if(documentsGroup) documentsGroup.classList.remove('hidden');
-      });
-
-      document.getElementById('sendOtpBtn').addEventListener('click', () => {
-        const name = document.getElementById('nameInput').value.trim();
-        const phone = document.getElementById('phoneInput').value.trim();
-        if(!name || !phone) return alert("Please enter both your Name and Phone Number.");
-        
-        pendingUserObj = { loggedIn: true, name: name, phone: phone, role: currentRole };
-        
-        if (currentRole === 'driver') {
-          // Document Validation
-          const photo = document.getElementById('driverPhoto').files.length;
-          const dl = document.getElementById('drivingLicense').files.length;
-          const rc = document.getElementById('vehicleRC').files.length;
-          const ins = document.getElementById('vehicleInsurance').files.length;
-
-          if (!photo || !dl || !rc || !ins) {
-            return alert("Please upload all required Driver & Vehicle documents to proceed.");
-          }
-
-          pendingUserObj.vehicleType = document.getElementById('vehicleType').value;
-          pendingUserObj.vehicleNumber = document.getElementById('vehicleNumber').value || 'MH 12 AB 1234';
-        }
-
-        simulatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-        
-        step1.classList.add('hidden');
-        step2.classList.remove('hidden');
-
-        setTimeout(() => {
-          alert(`📲 SIMULATED SMS:\n\nYour GoShare login code is: ${simulatedOtp}\nDo not share this with anyone.`);
-        }, 500);
-      });
-
-      document.getElementById('verifyLoginBtn').addEventListener('click', () => {
-        const inputOtp = document.getElementById('loginOtpInput').value.trim();
-        
-        if (inputOtp === simulatedOtp) {
-          localStorage.setItem('rideUser', JSON.stringify(pendingUserObj));
-          window.location.href = currentRole === 'user' ? 'user.html' : 'driver.html';
-        } else {
-          alert("Incorrect OTP. Please check the code and try again.");
-        }
-      });
-
-      document.getElementById('backBtn').addEventListener('click', () => {
-        step2.classList.add('hidden');
-        step1.classList.remove('hidden');
-        document.getElementById('loginOtpInput').value = '';
-      });
-    });
-  </script>
+<script type="module" src="index.js"></script>
 </body>
 </html>

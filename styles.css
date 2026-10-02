@@ -1249,3 +1249,42 @@ input:checked + .slider::before {
     height: 50%;
   }
 }
+
+/* --- OVERRIDES FOR DRIVER DASHBOARD DARK THEME --- */
+
+/* Fix for the white Vehicle Card and "Go online" panel */
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] [style*="background: white"],
+[data-theme="dark"] [style*="background-color: white"],
+[data-theme="dark"] [style*="background:#fff"] {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border: 1px solid #334155 !important;
+}
+
+/* Fix for the mint green Stat Cards (Earnings, Trips, Rating) */
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] [style*="background: #"],
+[data-theme="dark"] [style*="background-color: #e6ff"],
+[data-theme="dark"] [style*="background: #e6ff"] {
+    /* Targets those specific light green backgrounds if they are inline */
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border: 1px solid #334155 !important;
+}
+
+/* Ensure the text inside the stats is bright and visible */
+[data-theme="dark"] .stat-card h3,
+[data-theme="dark"] .stat-card p,
+[data-theme="dark"] .stat-card div,
+[data-theme="dark"] .stat-card span {
+    color: #f8fafc !important;
+}
+
+/* Ensure the 'Go online to find passengers' text is visible */
+[data-theme="dark"] .text-gray-800,
+[data-theme="dark"] .text-gray-600,
+[data-theme="dark"] .text-black {
+    color: #cbd5e1 !important;
+}
+

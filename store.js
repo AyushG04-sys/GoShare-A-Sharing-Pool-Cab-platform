@@ -1,44 +1,106 @@
-// ==========================================
-// LOCAL STORAGE DATABASE ENGINE (No API Keys Needed)
-// ==========================================
+const API_BASE = 'http://localhost:3000/api';
 
-console.log("💾 Running strictly on LocalStorage");
-
-window.loadBookings = () => JSON.parse(localStorage.getItem('rideShareBookings') || '[]');
-
-window.saveBookings = (data) => {
-  localStorage.setItem('rideShareBookings', JSON.stringify(data));
-  // This event tells other open tabs to refresh their data instantly
-  window.dispatchEvent(new Event('storage')); 
+const getAuthHeaders = () => {
+    // FIX: Using sessionStorage to prevent tab overwriting
+    const token = sessionStorage.getItem('authToken');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+    };
 };
 
-// FIX: Restored the missing helper functions!
-window.addBooking = (booking) => {
-  const current = loadBookings();
-  current.push(booking);
-  saveBookings(current);
+export const loginUser = async (userData) => {
+    try {
+        const response = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.token) {
+            // FIX: Using sessionStorage to prevent tab overwriting
+            sessionStorage.setItem('authToken', data.token);
+            
+            data.user.loggedIn = true;
+            
+            sessionStorage.setItem('rideUser', JSON.stringify(data.user)); 
+            sessionStorage.setItem('currentUser', JSON.stringify(data.user)); 
+            return data.user;
+        } else {
+            throw new Error(data.error || 'Login failed');
+        }
+    } catch (err) {
+        throw err;
+    }
 };
 
-window.removeBooking = (id) => {
-  let current = loadBookings();
-  current = current.filter(b => b.id !== id);
-  saveBookings(current);
+export const loadBookings = async () => {
+    try {
+        const response = await fetch(`${API_BASE}/bookings`, {
+            method: 'GET',
+            headers: getAuthHeaders() 
+        });
+        if (!response.ok) throw new Error('Failed to fetch bookings');
+        return await response.json();
+    } catch (err) {
+        console.error("Error loading bookings:", err);
+        return [];
+    }
 };
 
-// SOS Emergency Functions
-window.triggerSOS = (data) => {
-  const alerts = JSON.parse(localStorage.getItem('sosAlerts') || '[]');
-  alerts.push(data);
-  localStorage.setItem('sosAlerts', JSON.stringify(alerts));
-  window.dispatchEvent(new Event('storage'));
+export const addBooking = async (bookingData) => {
+    try {
+        const response = await fetch(`${API_BASE}/bookings`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(bookingData)
+        });
+        if (!response.ok) throw new Error('Failed to create booking');
+        return await response.json();
+    } catch (err) {
+        console.error("Error adding booking:", err);
+    }
 };
 
-window.listenForSOS = (callback) => {
-  const fetchAlerts = () => callback(JSON.parse(localStorage.getItem('sosAlerts') || '[]'));
-  fetchAlerts(); 
-  window.addEventListener('storage', fetchAlerts); 
+export const updateBooking = async (id, updateData) => {
+    try {
+        const response = await fetch(`${API_BASE}/bookings/${id}`, {
+            method: 'PATCH',
+            headers: getAuthHeaders(), 
+            body: JSON.stringify(updateData)
+        });
+        if (!response.ok) throw new Error('Failed to update booking');
+        return await response.json();
+    } catch (err) {
+        console.error("Error updating booking:", err);
+    }
 };
 
-window.addEventListener('storage', () => {
-   if (window.onBookingsUpdated) window.onBookingsUpdated(loadBookings());
-});
+export const removeBooking = async (id) => {
+    try {
+        const response = await fetch(`${API_BASE}/bookings/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to delete booking');
+        return true;
+    } catch (err) {
+        console.error("Error removing booking:", err);
+    }
+};
+
+export const triggerSOS = async (alertData) => {
+    try {
+        const response = await fetch(`${API_BASE}/sos`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(alertData)
+        });
+        if (!response.ok) throw new Error('Failed to trigger SOS');
+        return await response.json();
+    } catch (err) {
+        console.error("Error triggering SOS:", err);
+    }
+};

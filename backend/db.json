@@ -1,0 +1,180 @@
+{
+  "users": [
+    {
+      "id": "usr_1790772890118",
+      "phone": "8237830329",
+      "name": "ayush",
+      "role": "user",
+      "password": "$2b$10$j.uLRhWgmoso8QJBL3iv8.yJKViEmVZ7FjfgfEayhP8mmS6wN0Ep."
+    },
+    {
+      "id": "usr_1790772915704",
+      "phone": "9876543210",
+      "name": "apurva",
+      "role": "user",
+      "password": "$2b$10$WSCvftm5Zh3gW3C/tehGgObAUq3OjB2gH7a3apTwRoZdLTLD9rfbi"
+    },
+    {
+      "id": "usr_1790774577736",
+      "phone": "1234567890",
+      "name": "apurva",
+      "role": "user",
+      "password": "$2b$10$61kVWPPw7rgRLRXyzVP/bu.3uFAZE5tMGB6ccKFitQuZCoKdqaLg."
+    }
+  ],
+  "drivers": [
+    {
+      "id": "drv_1790772978686",
+      "phone": "1234567890",
+      "name": "Keshav Jhaa",
+      "role": "driver",
+      "password": "$2b$10$Hd.PmjxsttN.Pe2MHXkL2upaEsIb58NGj.a063nIdDbQasg2Q44SC",
+      "vehicleType": "rickshaw",
+      "vehicleNumber": "MH 15 GF 1990"
+    },
+    {
+      "id": "drv_1790774597352",
+      "phone": "9876543210",
+      "name": "Keshav Jhaa",
+      "role": "driver",
+      "password": "$2b$10$Jhp1e9hQfAHCCcUdSaxsLODMmZZLd6FbDpOesnntPiDGU9gthCswu",
+      "vehicleType": "",
+      "vehicleNumber": ""
+    }
+  ],
+  "bookings": [
+    {
+      "userName": "apurva",
+      "userPhone": "9876543210",
+      "pickupLat": 20.0134117,
+      "pickupLng": 73.8219246,
+      "pickupLabel": "K.K. Wagh Institute of Engineering Education & Research, Mumbai Agra Highway Elevated Corridor, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
+      "dropLat": 20.006844,
+      "dropLng": 73.7848996,
+      "dropLabel": "Ashok Stambh Circle, Vakil Wadi, Shalimar, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
+      "vehicleType": "rickshaw",
+      "isShared": true,
+      "coPassenger": {
+        "pickupLat": 20.011441389999998,
+        "pickupLng": 73.81081710000001,
+        "dropLat": 20.00881431,
+        "dropLng": 73.7960071
+      },
+      "status": "completed",
+      "fare": 47,
+      "otp": "7786",
+      "driverName": "Keshav Jhaa",
+      "id": "bk_1790773661338",
+      "createdAt": 1790773661338,
+      "driverPos": {
+        "lat": 19.991072602657233,
+        "lng": 73.80900749308316
+      }
+    },
+    {
+      "userName": "ayush",
+      "userPhone": "8237830329",
+      "pickupLat": 19.99106126131126,
+      "pickupLng": 73.8090578090997,
+      "pickupLabel": "Dwarka,  Nashik,  Nashik Subdistrict",
+      "dropLat": 19.9942732,
+      "dropLng": 73.7970546,
+      "dropLabel": "Dwarka Circle, Dwarka, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
+      "vehicleType": "rickshaw",
+      "isShared": true,
+      "coPassenger": {
+        "pickupLat": 19.992024842917882,
+        "pickupLng": 73.8054568463698,
+        "dropLat": 19.993309618393376,
+        "dropLng": 73.8006555627299
+      },
+      "status": "completed",
+      "fare": 27,
+      "otp": "2206",
+      "driverName": "Keshav Jhaa",
+      "id": "bk_1790774670231",
+      "createdAt": 1790774670231,
+      "driverPos": {
+        "lat": 19.99104913632168,
+        "lng": 73.80908587323508
+      }
+    },
+    {
+      "userName": "apurva",
+      "userPhone": "1234567890",
+      "pickupLat": 20.0134117,
+      "pickupLng": 73.8219246,
+      "pickupLabel": "K.K. Wagh Institute of Engineering Education & Research, Mumbai Agra Highway Elevated Corridor, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
+      "dropLat": 20.006844,
+      "dropLng": 73.7848996,
+      "dropLabel": "Ashok Stambh Circle, Vakil Wadi, Shalimar, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
+      "vehicleType": "rickshaw",
+      "isShared": true,
+      "coPassenger": {
+        "pickupLat": 20.011441389999998,
+        "pickupLng": 73.81081710000001,
+        "dropLat": 20.00881431,
+        "dropLng": 73.7960071
+      },
+      "status": "completed",
+      "fare": 47,
+      "otp": "7461",
+      "driverName": "Keshav Jhaa",
+      "id": "bk_1790774689372",
+      "createdAt": 1790774689372,
+      "driverPos": {
+        "lat": 19.99108354605916,
+        "lng": 73.80908721187545
+      }
+    },
+    {
+      "userName": "ayush",
+      "userPhone": "8237830329",
+      "pickupLat": 19.991112184555384,
+      "pickupLng": 73.80900655276717,
+      "pickupLabel": "Dwarka,  Nashik,  Nashik Subdistrict",
+      "dropLat": 19.9942732,
+      "dropLng": 73.7970546,
+      "dropLabel": "Dwarka Circle, Dwarka, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
+      "vehicleType": "rickshaw",
+      "isShared": true,
+      "coPassenger": {
+        "pickupLat": 19.992060489188766,
+        "pickupLng": 73.80542096693702,
+        "dropLat": 19.993324895366612,
+        "dropLng": 73.80064018583015
+      },
+      "status": "active",
+      "fare": 27,
+      "otp": "8565",
+      "driverName": "Searching...",
+      "id": "bk_1790775073586",
+      "createdAt": 1790775073586
+    },
+    {
+      "userName": "apurva",
+      "userPhone": "1234567890",
+      "pickupLat": 20.0134117,
+      "pickupLng": 73.8219246,
+      "pickupLabel": "K.K. Wagh Institute of Engineering Education & Research, Mumbai Agra Highway Elevated Corridor, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
+      "dropLat": 20.006844,
+      "dropLng": 73.7848996,
+      "dropLabel": "Ashok Stambh Circle, Vakil Wadi, Shalimar, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
+      "vehicleType": "rickshaw",
+      "isShared": true,
+      "coPassenger": {
+        "pickupLat": 20.011441389999998,
+        "pickupLng": 73.81081710000001,
+        "dropLat": 20.00881431,
+        "dropLng": 73.7960071
+      },
+      "status": "active",
+      "fare": 47,
+      "otp": "6774",
+      "driverName": "Searching...",
+      "id": "bk_1790775111889",
+      "createdAt": 1790775111889
+    }
+  ],
+  "sosAlerts": []
+}
