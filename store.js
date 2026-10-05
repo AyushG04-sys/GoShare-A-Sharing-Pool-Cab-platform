@@ -1,11 +1,10 @@
 const API_BASE = 'http://localhost:3000/api';
 
 const getAuthHeaders = () => {
-    // FIX: Using sessionStorage to prevent tab overwriting
     const token = sessionStorage.getItem('authToken');
     return {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
+        'Authorization': `Bearer ${token}`
     };
 };
 
@@ -16,17 +15,14 @@ export const loginUser = async (userData) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userData)
         });
-        
+
         const data = await response.json();
-        
+
         if (response.ok && data.token) {
-            // FIX: Using sessionStorage to prevent tab overwriting
             sessionStorage.setItem('authToken', data.token);
-            
             data.user.loggedIn = true;
-            
-            sessionStorage.setItem('rideUser', JSON.stringify(data.user)); 
-            sessionStorage.setItem('currentUser', JSON.stringify(data.user)); 
+            sessionStorage.setItem('rideUser', JSON.stringify(data.user));
+            sessionStorage.setItem('currentUser', JSON.stringify(data.user));
             return data.user;
         } else {
             throw new Error(data.error || 'Login failed');
@@ -40,7 +36,7 @@ export const loadBookings = async () => {
     try {
         const response = await fetch(`${API_BASE}/bookings`, {
             method: 'GET',
-            headers: getAuthHeaders() 
+            headers: getAuthHeaders()
         });
         if (!response.ok) throw new Error('Failed to fetch bookings');
         return await response.json();
@@ -66,15 +62,25 @@ export const addBooking = async (bookingData) => {
 
 export const updateBooking = async (id, updateData) => {
     try {
+        const allBookings = await loadBookings();
+        const currentBooking = findBookingById(allBookings, id);
+
+        if (!currentBooking) {
+            throw new Error('Booking not found for update');
+        }
+
+        const mergedBooking = { ...currentBooking, ...updateData };
+
         const response = await fetch(`${API_BASE}/bookings/${id}`, {
             method: 'PATCH',
-            headers: getAuthHeaders(), 
-            body: JSON.stringify(updateData)
+            headers: getAuthHeaders(),
+            body: JSON.stringify(mergedBooking)
         });
         if (!response.ok) throw new Error('Failed to update booking');
         return await response.json();
     } catch (err) {
         console.error("Error updating booking:", err);
+        return null;
     }
 };
 
@@ -103,4 +109,12 @@ export const triggerSOS = async (alertData) => {
     } catch (err) {
         console.error("Error triggering SOS:", err);
     }
+};
+
+export const findBookingById = (bookings, id) => {
+    return bookings.find(b =>
+        b.id === id ||
+        b.id === Number(id) ||
+        String(b.id) === String(id)
+    );
 };
