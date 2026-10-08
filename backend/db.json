@@ -40,6 +40,15 @@
       "password": "$2b$10$MMsZA7uCCTDc/VCE2Qzt4.M0Tc9Kmq.bFQt4GS2C7j7KwJR76bmmO",
       "vehicleType": "",
       "vehicleNumber": ""
+    },
+    {
+      "id": "drv_1791480472994",
+      "phone": "9876543210",
+      "name": "Keshav Jhaa",
+      "role": "driver",
+      "password": "$2b$10$2gS.wIoaZCma.QclLKPGKu.8qEjoXh1k10gxg/E7atzhEuenGoQR2",
+      "vehicleType": "",
+      "vehicleNumber": ""
     }
   ],
   "bookings": [
@@ -174,6 +183,48 @@
       "driverPos": {
         "lat": 19.991132264369917,
         "lng": 73.80902220395564
+      }
+    },
+    {
+      "userName": "apurva",
+      "userPhone": "1234567890",
+      "pickupLat": 20.0134117,
+      "pickupLng": 73.8219246,
+      "pickupLabel": "K.K. Wagh Institute of Engineering Education & Research, Mumbai Agra Highway Elevated Corridor, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
+      "dropLat": 19.9942732,
+      "dropLng": 73.7970546,
+      "dropLabel": "Dwarka Circle, Dwarka, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
+      "vehicleType": "rickshaw",
+      "isShared": true,
+      "femaleDriver": false,
+      "coPassenger": {
+        "joinedUserId": "ayush",
+        "joinedUserPhone": "8237830329",
+        "pickupLat": 19.99112609129276,
+        "pickupLng": 73.80902374522434,
+        "dropLat": 20.006844,
+        "dropLng": 73.7848996,
+        "pickupLabel": "Dwarka,  Nashik,  Nashik Subdistrict",
+        "dropLabel": "Ashok Stambh Circle, Vakil Wadi, Shalimar, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
+        "paymentMethod": "cash",
+        "fare": 36
+      },
+      "paymentMethod": "cash",
+      "status": "accepted",
+      "fare": 36,
+      "otp": "2829",
+      "driverName": "Keshav Jhaa",
+      "user1PickedUp": false,
+      "user2PickedUp": false,
+      "user1DroppedOff": false,
+      "user2DroppedOff": false,
+      "id": "bk_1791481253170",
+      "createdAt": 1791481253170,
+      "driverPhone": "9876543210",
+      "driverId": "drv_1791480472994",
+      "driverPos": {
+        "lat": 19.991566102414616,
+        "lng": 73.80930821074146
       }
     }
   ],
