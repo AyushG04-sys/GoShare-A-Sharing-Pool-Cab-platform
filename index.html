@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoShare - Login & Registration</title>
+    <title>&gt;GoShare - Login & Registration</title>
     <link rel="stylesheet" href="styles.css">
     <style>
         body { 
@@ -24,7 +24,10 @@
             width: 100%; 
             max-width: 400px; 
             box-sizing: border-box;
+            opacity: 0;
+            transition: opacity 0.6s ease;
         }
+        .auth-container.visible { opacity: 1; }
         .header { text-align: center; margin-bottom: 25px; }
         .header h1 { margin: 0; color: #f8fafc; font-size: 28px; }
         .header p { color: #94a3b8; font-size: 14px; margin-top: 5px; }
@@ -65,9 +68,112 @@
         .doc-upload input { margin-top: 6px; font-size: 12px; }
         
         #documentsGroup { background: #334155; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+
+        /* ===== SPLASH SCREEN ===== */
+        #splashScreen {
+            position: fixed;
+            inset: 0;
+            background: #0f172a;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        #splashScreen.fade-out {
+            opacity: 0;
+            transform: scale(1.05);
+            pointer-events: none;
+        }
+        .splash-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .splash-text {
+            font-size: 56px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            display: flex;
+        }
+        .splash-letter {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(40px) scale(0.3);
+            animation: letterBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes letterBounce {
+            0% { opacity: 0; transform: translateY(40px) scale(0.3); }
+            60% { opacity: 1; transform: translateY(-5px) scale(1.05); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .splash-tagline {
+            font-size: 16px;
+            color: #94a3b8;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeUp 0.5s ease 1.0s forwards;
+        }
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .splash-bar {
+            width: 120px;
+            height: 3px;
+            background: #334155;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .splash-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #2563eb);
+            border-radius: 3px;
+            animation: barFill 1.8s ease 0.5s forwards;
+        }
+        @keyframes barFill {
+            to { width: 100%; }
+        }
+        .splash-glow {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            animation: glowPulse 1.5s ease 1.2s forwards;
+        }
+        @keyframes glowPulse {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0.6; transform: scale(1); }
+        }
     </style>
 </head>
-<body data-theme="dark" style="background-color: #0f172a; color: white;">
+<body data-theme="dark">
+
+<!-- Splash Screen -->
+<div id="splashScreen">
+    <div class="splash-content">
+        <div class="splash-glow"></div>
+        <div class="splash-text">
+            <span class="splash-letter" style="animation-delay: 0.1s; color: #ffffff;">G</span>
+            <span class="splash-letter" style="animation-delay: 0.2s; color: #ffffff;">o</span>
+            <span class="splash-letter" style="animation-delay: 0.4s; color: #10b981;">S</span>
+            <span class="splash-letter: 0.5s; color: #10b981;">h</span>
+            <span class="splash-letter" style="animation-delay: 0.6s; color: #10b981;">a</span>
+            <span class="splash-letter" style="animation-delay: 0.7s; color: #10b981;">r</span>
+            <span class="splash-letter" style="animation-delay: 0.8s; color: #10b981;">e</span>
+        </div>
+        <div class="splash-tagline">Share rides, save money</div>
+        <div class="splash-bar">
+            <div class="splash-bar-fill"></div>
+        </div>
+    </div>
+</div>
 
 <div class="auth-container">
     <div class="header">
@@ -75,14 +181,12 @@
         <p>Share rides, save money</p>
     </div>
 
-    <!-- Role Selection Tabs -->
     <div class="tabs">
         <div id="userTab" class="tab active" style="background: white; color: black; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Passenger</div>
         <div id="driverTab" class="tab">Driver</div>
     </div>
 
     <div id="step1">
-        <!-- Auth Form Inputs -->
         <div class="input-group">
             <input type="text" id="nameInput" placeholder="Full Name (Required for Register)">
         </div>
@@ -93,7 +197,6 @@
             <input type="password" id="passwordInput" placeholder="Password">
         </div>
 
-        <!-- Driver Specific Fields -->
         <div id="vehicleGroup" class="input-group hidden">
             <select id="vehicleType">
                 <option value="rickshaw">Auto Rickshaw</option>
@@ -107,7 +210,6 @@
             <input type="text" id="vehicleNumber" placeholder="Vehicle Number (e.g. MH 12 AB 1234)">
         </div>
 
-        <!-- Document Uploads -->
         <div id="documentsGroup" class="hidden">
             <p style="font-weight: 600; font-size: 14px; margin: 0 0 10px 0; color: white;">Upload Documents</p>
             <div class="doc-upload">
@@ -128,7 +230,6 @@
             </div>
         </div>
 
-        <!-- Action Button & Toggle -->
         <button id="authActionBtn" class="primary-btn">Register</button>
         
         <div style="text-align: center; margin-top: 18px;">
@@ -139,6 +240,15 @@
     </div>
 </div>
 
+<script>
+    setTimeout(() => {
+        const splash = document.getElementById('splashScreen');
+        const auth = document.querySelector('.auth-container');
+        if (splash) splash.classList.add('fade-out');
+        if (auth) auth.classList.add('visible');
+        setTimeout(() => { if (splash) splash.remove(); }, 700);
+    }, 2800);
+</script>
 <script type="module" src="index.js"></script>
 </body>
 </html>

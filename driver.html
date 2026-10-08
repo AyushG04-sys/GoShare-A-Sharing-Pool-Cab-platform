@@ -8,15 +8,20 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; height: 100vh; background-color: #0f172a; color: white; }
-        .header { background: #1e293b; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; }
+        .header { background: #1e293b; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; z-index: 100; }
         .header-left { display: flex; align-items: center; gap: 10px; }
         .header-logo { background: black; color: white; font-weight: bold; padding: 5px 10px; border-radius: 6px; }
         .main-content { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 350px; background: #0f172a; padding: 20px; overflow-y: auto; border-right: 1px solid #334155; }
-        .map-container { flex: 1; position: relative; }
+        .sidebar { width: 380px; background: #0f172a; padding: 20px; overflow-y: auto; border-right: 1px solid #334155; flex-shrink: 0; }
+        .map-container { flex: 1; position: relative; min-width: 0; }
         #map { width: 100%; height: 100%; }
-        .primary-btn { background: #2563eb; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        
+        .primary-btn { background: #2563eb; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; font-size: 15px; transition: 0.2s; }
+        .primary-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+        .green-btn { background: #10b981; }
+        .green-btn:hover { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .red-btn { background: #ef4444; }
+        .hidden { display: none !important; }
+
         .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 34px; }
@@ -24,33 +29,77 @@
         input:checked + .slider { background-color: #10b981; }
         input:checked + .slider:before { transform: translateX(26px); }
 
-        .input-group { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-        .input-group input { background: transparent; border: none; color: white; width: 100%; outline: none; }
-        
-        .route-timeline { position: relative; padding-left: 20px; margin-bottom: 25px; }
+        .input-group { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 10px; position: relative; overflow: visible; }
+        .input-group input { background: transparent; border: none; color: white; width: 100%; outline: none; font-size: 14px; }
+        .route-timeline { position: relative; padding-left: 20px; margin-bottom: 20px; }
         .route-timeline::before { content: ''; position: absolute; left: 5px; top: 15px; bottom: 15px; width: 2px; background: #475569; }
-        .route-dot-start { position: absolute; left: 0; top: 12px; width: 12px; height: 12px; background: #111827; border-radius: 50%; border: 2px solid #475569; }
-        .route-dot-end { position: absolute; left: 0; bottom: 12px; width: 12px; height: 12px; background: #10b981; border-radius: 50%; }
-
-        .hidden { display: none !important; }
+        .route-dot-start { position: absolute; left: 0; top: 12px; width: 12px; height: 12px; background: #2563eb; border-radius: 50%; border: 2px solid #93c5fd; }
+        .route-dot-end { position: absolute; left: 0; bottom: 12px; width: 12px; height: 12px; background: #10b981; border-radius: 50%; border: 2px solid #6ee7b7; }
 
         .autocomplete-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #1e293b; border: 1px solid #334155; border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 2000; box-shadow: 0 4px 6px rgba(0,0,0,0.3); margin-top: 4px; }
         .autocomplete-item { padding: 10px; border-bottom: 1px solid #334155; cursor: pointer; color: #cbd5e1; font-size: 13px; text-align: left; line-height: 1.4; }
         .autocomplete-item:hover { background: #334155; color: white; }
 
-        /* Full Screen GPS Modal */
         #gpsModal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .modal-content { background: #1e293b; padding: 30px; border-radius: 12px; text-align: center; border: 1px solid #334155; width: 300px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .modal-box { background: #1e293b; padding: 30px; border-radius: 12px; text-align: center; border: 1px solid #334155; width: 300px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+
+        .vehicle-card-info-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 16px; }
+        .vehicle-card-icon { font-size: 36px; width: 56px; text-align: center; }
+        .vehicle-card-title { font-weight: 700; font-size: 16px; color: #f8fafc; }
+        .vehicle-card-sub { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
+        .online-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+        .online-label { font-size: 15px; font-weight: 600; }
+        .online-status { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
+        .section-header { font-size: 13px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; margin-top: 4px; }
+
+        #requestModal { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; background: #1e293b; border: 1px solid #2563eb; border-radius: 14px; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); width: 340px; animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from { transform: translateX(-50%) translateY(-20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+        .request-title { font-size: 18px; font-weight: 700; color: #60a5fa; margin-bottom: 14px; }
+        .request-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14px; color: #cbd5e1; }
+        .request-row strong { color: #f8fafc; min-width: 80px; }
+        .request-badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-left: 6px; }
+        .badge-shared { background: #10b981; color: white; }
+        .badge-female { background: #a855f7; color: white; }
+        .badge-solo { background: #2563eb; color: white; }
+        .request-actions { display: flex; gap: 10px; margin-top: 16px; }
+        .request-actions button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .request-actions button:hover { transform: translateY(-1px); }
+        .accept-btn { background: #10b981; color: white; }
+        .reject-btn { background: #ef4444; color: white; }
+
+        .active-ride-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .active-ride-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .active-ride-name { font-size: 16px; font-weight: 700; color: #f8fafc; }
+        .active-ride-otp { font-size: 13px; color: #10b981; font-weight: 700; background: #0f172a; padding: 4px 10px; border-radius: 6px; letter-spacing: 2px; }
+        .active-ride-route { font-size: 13px; color: #94a3b8; margin-bottom: 8px; }
+        .active-ride-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .meta-badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
+        .meta-payment { background: #334155; color: #cbd5e1; }
+        .meta-fare { background: #0f172a; color: #f8fafc; border: 1px solid #334155; }
+        .active-ride-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .active-ride-action:hover { transform: translateY(-1px); }
+        .start-btn { background: #10b981; color: white; }
+        .complete-btn { background: #2563eb; color: white; }
+        .co-passenger-row { font-size: 12px; color: #34d399; margin-top: 6px; }
+
+        .empty-state { text-align: center; color: #94a3b8; padding: 30px 16px; background: #1e293b; border: 1px solid #334155; border-radius: 12px; font-size: 14px; }
+
+        @media (max-width: 768px) {
+            .main-content { flex-direction: column; }
+            .sidebar { width: 100%; }
+        }
     </style>
 </head>
 <body data-theme="dark">
 
 <div id="gpsModal">
-    <div class="modal-content">
+    <div class="modal-box">
         <h3 style="margin-top: 0;">Allow Location Access?</h3>
-        <p style="color: #94a3b8; font-size: 14px; margin-bottom: 25px;">GoShare needs your location to assign you accurate routes and passengers.</p>
+        <p style="color: #94a3b8; font-size: 14px; margin-bottom: 25px;">GoShare needs your location to assign accurate routes and passengers.</p>
         <div style="display: flex; gap: 10px;">
-            <button id="allowGpsBtn" class="primary-btn" style="margin: 0; background: #10b981;">Allow GPS</button>
+            <button id="allowGpsBtn" class="primary-btn green-btn" style="margin: 0;">Allow GPS</button>
             <button id="denyGpsBtn" class="primary-btn" style="margin: 0; background: #475569;">Skip</button>
         </div>
     </div>
@@ -63,7 +112,7 @@
     </div>
     <div style="display: flex; align-items: center; gap: 15px;">
         <div style="display: flex; align-items: center; gap: 8px;">
-            <span id="statusText" style="font-weight: 600; color: #94a3b8;">Offline</span>
+            <span id="statusText" style="font-weight: 600; color: #94a3b8; font-size: 14px;">Offline</span>
             <label class="switch">
                 <input type="checkbox" id="onlineToggle">
                 <span class="slider"></span>
@@ -75,45 +124,67 @@
 
 <div class="main-content">
     <div class="sidebar">
-        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; color: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);">
-            <div id="vehicleIcon" style="font-size: 32px;">🛺</div>
+
+        <div class="vehicle-card-info-card">
+            <div class="vehicle-card-icon" id="vehicleIcon">🛺</div>
             <div>
-                <div id="vehicleTitle" style="font-weight: 600; font-size: 16px; color: #f8fafc;">Auto Rickshaw</div>
-                <div id="vehicleNumberDisplay" style="font-size: 13px; color: #94a3b8; margin-top: 2px;">MH 12 AB 1234</div>
+                <div class="vehicle-card-title" id="vehicleTitle">Auto Rickshaw</div>
+                <div class="vehicle-card-sub" id="vehicleNumberDisplay">MH 12 AB 1234</div>
             </div>
         </div>
 
-        <h4 style="color: #f8fafc; margin-bottom: 15px; margin-top: 5px;">YOUR ROUTE</h4>
+        <div class="section-header">Your Route</div>
 
         <div class="route-timeline">
             <div class="route-dot-start"></div>
-            <div class="input-group" style="position: relative; overflow: visible;">
+            <div class="input-group">
                 <input type="text" id="pickupInput" placeholder="Current location" autocomplete="off" value="Pune, Maharashtra">
                 <div id="pickupDropdown" class="autocomplete-dropdown hidden"></div>
             </div>
             <div class="route-dot-end"></div>
-            <div class="input-group" style="position: relative; overflow: visible;">
+            <div class="input-group">
                 <input type="text" id="dropInput" placeholder="Search destination..." autocomplete="off">
                 <div id="dropDropdown" class="autocomplete-dropdown hidden"></div>
             </div>
         </div>
 
-        <h4 style="color: #f8fafc; margin-bottom: 10px;">PASSENGERS ON YOUR ROUTE</h4>
-        <div id="activeRidesContainer" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; text-align: center; color: #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);">
-            Go online to find passengers
+        <div class="section-header">Ride Requests & Active Rides</div>
+        <div id="activeRidesContainer">
+            <div class="empty-state">Go online to find passengers</div>
         </div>
+
     </div>
 
     <div class="map-container">
-        <div id="requestModal" class="location-banner hidden" style="border: 1px solid #3b82f6; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; background: #1e293b; padding: 15px; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); width: 300px;">
-            <h3 style="margin: 0 0 10px 0; color: #60a5fa;">New Ride Request!</h3>
-            <p id="sharedAlert" class="hidden" style="color: #10b981; font-size: 12px; font-weight: bold; margin-bottom: 10px;">👥 SHARED RIDE (2 Passengers)</p>
-            <p style="margin:5px 0;"><strong>Passenger:</strong> <span id="passengerName"></span></p>
-            <p style="margin:5px 0;"><strong>Route:</strong> <span id="passengerRoute"></span></p>
-            <p style="margin:5px 0;"><strong>Fare:</strong> ₹<span id="passengerFare"></span></p>
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button id="acceptBtn" style="background: #10b981; margin-top:0; color: white; width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Accept</button>
-                <button id="rejectBtn" style="background: #ef4444; margin-top:0; color: white; width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Reject</button>
+        <div id="requestModal" class="hidden">
+            <div class="request-title">🚨 New Ride Request!</div>
+            <div id="requestRideTypeRow" class="request-row">
+                <strong>Type:</strong> <span id="requestRideType">Solo</span>
+            </div>
+            <div id="requestSharedBadge" class="hidden" style="margin-bottom: 10px;">
+                <span class="request-badge badge-shared">👥 SHARED RIDE</span>
+            </div>
+            <div id="requestFemaleBadge" class="hidden" style="margin-bottom: 10px;">
+                <span class="request-badge badge-female">♀ FEMALE DRIVER REQUESTED</span>
+            </div>
+            <div class="request-row">
+                <strong>Passenger:</strong> <span id="passengerName"></span>
+            </div>
+            <div class="request-row">
+                <strong>Route:</strong> <span id="passengerRoute"></span>
+            </div>
+            <div class="request-row">
+                <strong>Fare:</strong> ₹<span id="passengerFare"></span>
+            </div>
+            <div class="request-row">
+                <strong>Payment:</strong> <span id="requestPayment">Cash</span>
+            </div>
+            <div id="requestCoPassenger" class="hidden co-passenger-row">
+                <strong>Co-Passenger:</strong> <span id="requestCoPassengerName"></span>
+            </div>
+            <div class="request-actions">
+                <button class="accept-btn" id="acceptBtn">✓ Accept</button>
+                <button class="reject-btn" id="rejectBtn">✕ Reject</button>
             </div>
         </div>
         <div id="map"></div>

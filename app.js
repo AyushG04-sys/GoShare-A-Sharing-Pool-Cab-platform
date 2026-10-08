@@ -12,15 +12,18 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = 'index.html';
   });
 
-  let map, pickupMarker, dropMarker, coPassengerMarker, currentRouteLayer;
-
-  let savedLat = sessionStorage.getItem('userLat');
-  let savedLng = sessionStorage.getItem('userLng');
-  let userPos = (savedLat && savedLng) ? { lat: parseFloat(savedLat), lng: parseFloat(savedLng) } : { lat: 18.5204, lng: 73.8567 };
-
-  let dropPos = JSON.parse(sessionStorage.getItem('dropPos') || 'null');
+  // ===== STATE =====
+  let map, pickupMarker, dropMarker, driverMarker, coPassengerBlip, currentRouteLayer;
+  let userPos = { lat: 18.5204, lng: 73.8567 };
+  let dropPos = null;
   let currentRouteCoords = '';
   let currentBookingId = sessionStorage.getItem('currentBookingId');
+  let rideType = sessionStorage.getItem('rideType') || null;
+  let selectedVehicleType = null;
+  let selectedFare = 0;
+  let paymentMethod = sessionStorage.getItem('paymentMethod') || null;
+  let mapInitialized = false;
+  let myDropOffDone = false;
 
   function updateUserPos(lat, lng) {
     userPos = { lat, lng };
@@ -42,41 +45,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  if (sessionStorage.getItem('pickupInputText')) document.getElementById('pickupInput').value = sessionStorage.getItem('pickupInputText');
-  if (sessionStorage.getItem('dropInputText')) document.getElementById('dropInput').value = sessionStorage.getItem('dropInputText');
-
-  if (currentBookingId) {
-    document.getElementById('bookingPanel').classList.add('hidden');
-    document.getElementById('activeRidePanel').classList.remove('hidden');
+  function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
   }
 
-  map = L.map('map', { zoomControl: false }).setView([userPos.lat, userPos.lng], 15);
-  L.control.zoom({ position: 'topright' }).addTo(map);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+  const getSharedFare = (baseFare) => {
+    if (baseFare >= 80) return Math.round(baseFare * 0.65);
+    if (baseFare <= 40) return Math.round(baseFare * 0.90);
+    return Math.round(baseFare * 0.80);
+  };
 
-  pickupMarker = L.marker([userPos.lat, userPos.lng], { draggable: false }).addTo(map);
-  pickupMarker.bindPopup('<b>Pickup</b>').openPopup();
-
-  if (dropPos && !currentBookingId) {
-    dropMarker = L.marker([dropPos.lat, dropPos.lng], { draggable: false }).addTo(map);
-    dropMarker.bindPopup('<b>Destination</b>');
-    drawRoute([userPos, dropPos]);
-  }
-
-  if (!sessionStorage.getItem('pickupInputText')) syncAddressInput(userPos.lat, userPos.lng, 'pickupInput');
-
+  // ===== GPS MODAL =====
   const gpsModal = document.getElementById('gpsModal');
-
   if (sessionStorage.getItem('gpsPromptAnswered') === 'true') {
     gpsModal.classList.add('hidden');
-    if (navigator.geolocation && !currentBookingId && !dropPos) {
-      navigator.geolocation.getCurrentPosition(async pos => {
-        updateUserPos(pos.coords.latitude, pos.coords.longitude);
-        pickupMarker.setLatLng([userPos.lat, userPos.lng]);
-        map.setView([userPos.lat, userPos.lng], 15);
-        syncAddressInput(userPos.lat, userPos.lng, 'pickupInput');
-      }, () => {}, { enableHighAccuracy: true, timeout: 10000 });
-    }
   }
 
   document.getElementById('denyGpsBtn')?.addEventListener('click', () => {
@@ -91,23 +77,20 @@ document.addEventListener('DOMContentLoaded', () => {
       gpsModal.classList.add('hidden');
       return;
     }
-
     document.getElementById('allowGpsBtn').textContent = 'Locating...';
-
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         sessionStorage.setItem('gpsPromptAnswered', 'true');
         gpsModal.classList.add('hidden');
         updateUserPos(pos.coords.latitude, pos.coords.longitude);
-
-        map.setView([userPos.lat, userPos.lng], 15);
-        pickupMarker.setLatLng([userPos.lat, userPos.lng]).openPopup();
-
-        syncAddressInput(userPos.lat, userPos.lng, 'pickupInput');
-        if (dropPos) drawRoute([userPos, dropPos]);
+        if (mapInitialized) {
+          pickupMarker.setLatLng([userPos.lat, userPos.lng]).openPopup();
+          map.setView([userPos.lat, userPos.lng], 15);
+          syncAddressInput(userPos.lat, userPos.lng, 'pickupInput');
+        }
       },
       () => {
-        alert("Failed to get GPS. Try checking browser permissions.");
+        alert("Failed to get GPS.");
         sessionStorage.setItem('gpsPromptAnswered', 'true');
         gpsModal.classList.add('hidden');
       },
@@ -115,6 +98,89 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   });
 
+  // ===== MAP INITIALIZATION =====
+  function initMap() {
+    if (mapInitialized) return;
+
+    let savedLat = sessionStorage.getItem('userLat');
+    let savedLng = sessionStorage.getItem('userLng');
+    if (savedLat && savedLng) userPos = { lat: parseFloat(savedLat), lng: parseFloat(savedLng) };
+    dropPos = JSON.parse(sessionStorage.getItem('dropPos') || 'null');
+
+    map = L.map('map', { zoomControl: false }).setView([userPos.lat, userPos.lng], 15);
+    L.control.zoom({ position: 'topright' }).addTo(map);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    pickupMarker = L.marker([userPos.lat, userPos.lng], { draggable: false }).addTo(map);
+    pickupMarker.bindPopup('<b>Pickup</b>').openPopup();
+
+    if (dropPos) {
+      dropMarker = L.marker([dropPos.lat, dropPos.lng], { draggable: true }).addTo(map);
+      dropMarker.bindPopup('<b>Destination</b>');
+      drawRoute([userPos, dropPos]);
+    }
+
+    if (!sessionStorage.getItem('pickupInputText')) syncAddressInput(userPos.lat, userPos.lng, 'pickupInput');
+
+    map.on('click', async (e) => {
+      if (document.getElementById('destinationPanel').classList.contains('hidden')) return;
+      const { lat, lng } = e.latlng;
+      updateDropPos(lat, lng);
+      if (!dropMarker) {
+        dropMarker = L.marker([lat, lng], { draggable: true }).addTo(map);
+        dropMarker.bindPopup('<b>Destination</b>');
+        dropMarker.on('dragend', async () => {
+          const pos = dropMarker.getLatLng();
+          updateDropPos(pos.lat, pos.lng);
+          syncAddressInput(pos.lat, pos.lng, 'dropInput');
+          if (userPos && dropPos) drawRoute([userPos, dropPos]);
+          document.getElementById('continueBtn').disabled = false;
+        });
+      } else {
+        dropMarker.setLatLng([lat, lng]);
+      }
+      dropMarker.openPopup();
+      syncAddressInput(lat, lng, 'dropInput');
+      if (userPos && dropPos) drawRoute([userPos, dropPos]);
+      document.getElementById('continueBtn').disabled = false;
+    });
+
+    if (dropMarker) {
+      dropMarker.on('dragend', async () => {
+        const pos = dropMarker.getLatLng();
+        updateDropPos(pos.lat, pos.lng);
+        syncAddressInput(pos.lat, pos.lng, 'dropInput');
+        if (userPos && dropPos) drawRoute([userPos, dropPos]);
+        document.getElementById('continueBtn').disabled = false;
+      });
+    }
+
+    mapInitialized = true;
+
+    if (sessionStorage.getItem('gpsPromptAnswered') !== 'true') return;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async pos => {
+        updateUserPos(pos.coords.latitude, pos.coords.longitude);
+        pickupMarker.setLatLng([userPos.lat, userPos.lng]);
+        if (!currentBookingId) map.setView([userPos.lat, userPos.lng], 15);
+        syncAddressInput(userPos.lat, userPos.lng, 'pickupInput');
+      }, () => {}, { enableHighAccuracy: true, timeout: 10000 });
+    }
+  }
+
+  async function drawRoute(waypoints) {
+    const coordsStr = waypoints.map(w => `${w.lat},${w.lng}`).join('-');
+    if (currentRouteCoords === coordsStr) return;
+    currentRouteCoords = coordsStr;
+    if (currentRouteLayer) map.removeLayer(currentRouteLayer);
+    const routeGeometry = await Geo.getOptimizedRoute(waypoints);
+    if (routeGeometry && map) {
+      currentRouteLayer = L.geoJSON(routeGeometry, { style: { color: '#3b82f6', weight: 5, opacity: 0.8 } }).addTo(map);
+      map.fitBounds(currentRouteLayer.getBounds(), { padding: [50, 50] });
+    }
+  }
+
+  // ===== AUTOCOMPLETE =====
   const setupAutocomplete = (inputId, dropdownId, isPickup) => {
     const input = document.getElementById(inputId);
     const dropdown = document.getElementById(dropdownId);
@@ -142,17 +208,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
               if (isPickup) {
                 updateUserPos(lat, lon);
-                pickupMarker.setLatLng([lat, lon]).openPopup();
-                map.setView([lat, lon], 14);
+                if (mapInitialized) {
+                  pickupMarker.setLatLng([lat, lon]).openPopup();
+                  map.setView([lat, lon], 14);
+                }
               } else {
                 updateDropPos(lat, lon);
-                if (!dropMarker) {
-                  dropMarker = L.marker([lat, lon], { draggable: false }).addTo(map);
-                  dropMarker.bindPopup('<b>Destination</b>');
+                if (mapInitialized) {
+                  if (!dropMarker) {
+                    dropMarker = L.marker([lat, lon], { draggable: true }).addTo(map);
+                    dropMarker.bindPopup('<b>Destination</b>');
+                  } else {
+                    dropMarker.setLatLng([lat, lon]);
+                  }
+                  dropMarker.openPopup();
                 }
-                dropMarker.setLatLng([lat, lon]).openPopup();
+                document.getElementById('continueBtn').disabled = false;
               }
-              if (userPos && dropPos) drawRoute([userPos, dropPos]);
+              if (mapInitialized && userPos && dropPos) drawRoute([userPos, dropPos]);
             };
             dropdown.appendChild(div);
           });
@@ -166,125 +239,190 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  setupAutocomplete('pickupInput', 'pickupDropdown', true);
-  setupAutocomplete('dropInput', 'dropDropdown', false);
+  // ===== STEP 1: RIDE TYPE SELECTION =====
+  document.getElementById('soloCard').addEventListener('click', () => selectRideType('solo'));
+  document.getElementById('sharedCard').addEventListener('click', () => selectRideType('shared'));
+  document.getElementById('femaleCard').addEventListener('click', () => selectRideType('female'));
 
-  async function drawRoute(waypoints) {
-    const coordsStr = waypoints.map(w => `${w.lat},${w.lng}`).join('-');
-    if (currentRouteCoords === coordsStr) return;
-    currentRouteCoords = coordsStr;
+  function selectRideType(type) {
+    rideType = type;
+    sessionStorage.setItem('rideType', type);
+    document.getElementById('rideTypeScreen').classList.add('hidden');
+    document.getElementById('mapScreen').classList.remove('hidden');
+    initMap();
+    setupAutocomplete('pickupInput', 'pickupDropdown', true);
+    setupAutocomplete('dropInput', 'dropDropdown', false);
+    showStep('destination');
 
-    if (currentRouteLayer) map.removeLayer(currentRouteLayer);
-    const routeGeometry = await Geo.getOptimizedRoute(waypoints);
-    if (routeGeometry && map) {
-      currentRouteLayer = L.geoJSON(routeGeometry, { style: { color: '#3b82f6', weight: 5, opacity: 0.8 } }).addTo(map);
-      map.fitBounds(currentRouteLayer.getBounds(), { padding: [50, 50] });
+    if (sessionStorage.getItem('pickupInputText')) document.getElementById('pickupInput').value = sessionStorage.getItem('pickupInputText');
+    if (sessionStorage.getItem('dropInputText')) {
+      document.getElementById('dropInput').value = sessionStorage.getItem('dropInputText');
+      document.getElementById('continueBtn').disabled = false;
     }
   }
 
-  function getDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+  // ===== STEP NAVIGATION =====
+  function showStep(step) {
+    sessionStorage.setItem('currentStep', step);
+    document.getElementById('destinationPanel').classList.add('hidden');
+    document.getElementById('vehiclePanel').classList.add('hidden');
+    document.getElementById('trackingPanel').classList.add('hidden');
+
+    if (step === 'destination') {
+      document.getElementById('destinationPanel').classList.remove('hidden');
+    } else if (step === 'vehicle') {
+      document.getElementById('vehiclePanel').classList.remove('hidden');
+      populateVehicles();
+    } else if (step === 'tracking') {
+      document.getElementById('trackingPanel').classList.remove('hidden');
+    }
   }
 
-  const getSharedFare = (baseFare) => {
-    if (baseFare >= 80) return Math.round(baseFare * 0.65);
-    if (baseFare <= 40) return Math.round(baseFare * 0.90);
-    return Math.round(baseFare * 0.80);
-  };
-
-  function populateFares() {
-    if (!dropPos || !userPos) return;
-    const distance = getDistance(userPos.lat, userPos.lng, dropPos.lat, dropPos.lng);
-
-    const baseAuto = Math.max(30, Math.round(distance * 15));
-    const baseMini = Math.max(50, Math.round(distance * 20));
-    const baseCab = Math.max(70, Math.round(distance * 25));
-    const baseSuv = Math.max(100, Math.round(distance * 35));
-
-    const select = document.getElementById('vehicleSelect');
-    select.innerHTML = `
-        <option value="rickshaw">Auto Rickshaw - ₹${baseAuto}</option>
-        <option value="rickshaw">Shared Auto (Save up to 35%) - ₹${getSharedFare(baseAuto)}</option>
-        <option value="mini">Mini - ₹${baseMini}</option>
-        <option value="cab">Cab / Sedan - ₹${baseCab}</option>
-        <option value="cab">Shared Cab (Save up to 35%) - ₹${getSharedFare(baseCab)}</option>
-        <option value="suv">SUV - ₹${baseSuv}</option>
-    `;
-
-    document.getElementById('confirmRouteBtn').classList.add('hidden');
-    document.getElementById('vehicleSelectionPanel').classList.remove('hidden');
-    sessionStorage.setItem('vehiclePanelOpen', 'true');
-  }
-
-  if (sessionStorage.getItem('vehiclePanelOpen') === 'true' && !currentBookingId) {
-    populateFares();
-  }
-
-  document.getElementById('confirmRouteBtn').addEventListener('click', (e) => {
-    e.preventDefault();
-    if (!dropPos || !userPos) return alert("Please search for a destination first.");
-    populateFares();
+  document.getElementById('backToRideType').addEventListener('click', () => {
+    document.getElementById('mapScreen').classList.add('hidden');
+    document.getElementById('rideTypeScreen').classList.remove('hidden');
   });
 
-  document.getElementById('confirmRideBtn')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const select = document.getElementById('vehicleSelect');
-    const selectedText = select.options[select.selectedIndex].text;
-    const extractedFare = parseInt(selectedText.match(/₹(\d+)/)[1]);
-    const isSharedRide = selectedText.includes('Shared');
-    const selectedVehicle = select.value;
+  document.getElementById('backToDestination').addEventListener('click', () => {
+    showStep('destination');
+  });
+
+  // ===== STEP 2: CONTINUE =====
+  document.getElementById('continueBtn').addEventListener('click', () => {
+    if (!dropPos) return alert("Please select a destination first.");
+    showStep('vehicle');
+  });
+
+  // ===== STEP 3: VEHICLE SELECTION =====
+  function populateVehicles() {
+    const container = document.getElementById('vehicleOptions');
+    container.innerHTML = '';
+    selectedVehicleType = null;
+    selectedFare = 0;
+    document.getElementById('confirmRideBtn').disabled = true;
+    document.getElementById('fareSummary').classList.add('hidden');
+
+    const distance = getDistance(userPos.lat, userPos.lng, dropPos.lat, dropPos.lng);
+    const isShared = rideType === 'shared';
+    const isFemale = rideType === 'female';
+
+    const labels = { solo: 'Solo Ride', shared: 'Shared Ride', female: 'Female Driver Ride' };
+    document.getElementById('rideTypeLabel').textContent = labels[rideType] + ' • ' + distance.toFixed(1) + ' km';
+
+    const vehicles = [
+      { type: 'rickshaw', icon: '🛺', name: 'Auto Rickshaw', baseRate: 15, minFare: 30 },
+      { type: 'mini', icon: '🚗', name: 'Mini', baseRate: 20, minFare: 50 },
+      { type: 'cab', icon: '🚖', name: 'Cab / Sedan', baseRate: 25, minFare: 70 },
+      { type: 'suv', icon: '🚙', name: 'SUV', baseRate: 35, minFare: 100 }
+    ];
+
+    vehicles.forEach(v => {
+      let fare = Math.max(v.minFare, Math.round(distance * v.baseRate));
+      const originalFare = fare;
+      let displayName = v.name;
+      let desc = '';
+
+      if (isShared) { fare = getSharedFare(fare); displayName = 'Shared ' + v.name; desc = 'Save ' + (originalFare - fare); }
+      if (isFemale) { desc = '♀ Female driver'; }
+
+      const card = document.createElement('div');
+      card.className = 'vehicle-card';
+      card.dataset.vehicle = v.type;
+      card.dataset.fare = fare;
+      card.dataset.originalFare = originalFare;
+
+      card.innerHTML = `
+        <div class="vehicle-icon">${v.icon}</div>
+        <div class="vehicle-info">
+          <div class="vehicle-name">${displayName}${isShared ? '<span class="shared-badge">SHARED</span>' : ''}${isFemale ? '<span class="female-badge">♀ FEMALE</span>' : ''}</div>
+          <div class="vehicle-desc">${isShared ? 'Save ₹' + desc : desc || 'Comfortable ride'}</div>
+        </div>
+        <div style="text-align: right;">
+          <div class="vehicle-fare">₹${fare}</div>
+          ${isShared ? '<div class="vehicle-fare-original">₹' + originalFare + '</div>' : ''}
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        container.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedVehicleType = v.type;
+        selectedFare = fare;
+        document.getElementById('confirmRideBtn').disabled = false;
+
+        document.getElementById('fareSummary').classList.remove('hidden');
+        document.getElementById('fareAmount').textContent = '₹' + originalFare;
+        if (isShared) {
+          document.getElementById('sharedFareRow').classList.remove('hidden');
+          document.getElementById('sharedFareRow').style.display = 'flex';
+          document.getElementById('discountAmount').textContent = '-₹' + (originalFare - fare);
+        } else {
+          document.getElementById('sharedFareRow').classList.add('hidden');
+        }
+        document.getElementById('totalAmount').textContent = '₹' + fare;
+      });
+
+      container.appendChild(card);
+    });
+  }
+
+  // ===== CONFIRM RIDE → PAYMENT =====
+  document.getElementById('confirmRideBtn').addEventListener('click', () => {
+    if (!selectedVehicleType) return;
+    document.getElementById('paymentModal').classList.remove('hidden');
+    paymentMethod = null;
+    document.getElementById('proceedPaymentBtn').disabled = true;
+    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+  });
+
+  // ===== STEP 4: PAYMENT =====
+  document.querySelectorAll('.payment-option').forEach(option => {
+    option.addEventListener('click', () => {
+      document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+      option.classList.add('selected');
+      paymentMethod = option.dataset.method;
+      document.getElementById('proceedPaymentBtn').disabled = false;
+    });
+  });
+
+  document.getElementById('proceedPaymentBtn').addEventListener('click', async () => {
+    if (!paymentMethod) return;
+    sessionStorage.setItem('paymentMethod', paymentMethod);
+    document.getElementById('paymentModal').classList.add('hidden');
+
+    const isSharedRide = rideType === 'shared';
+    const isFemaleDriver = rideType === 'female';
 
     if (isSharedRide) {
       try {
         const allBookings = await loadBookings();
         const existingSharedRide = allBookings.find(b =>
-          (b.status === 'active' || b.status === 'accepted') &&
+          (b.status === 'accepted' || b.status === 'active') &&
           b.isShared === true &&
-          (b.vehicleType || '').toLowerCase() === selectedVehicle &&
+          (b.vehicleType || '').toLowerCase() === selectedVehicleType &&
           (!b.coPassenger || !b.coPassenger.joinedUserId)
         );
 
         if (existingSharedRide) {
           const sharedFare = getSharedFare(existingSharedRide.fare);
-
           await updateBooking(existingSharedRide.id, {
             fare: sharedFare,
             coPassenger: {
               joinedUserId: userData.name,
               joinedUserPhone: userData.phone,
-              pickupLat: userPos.lat,
-              pickupLng: userPos.lng,
-              dropLat: dropPos.lat,
-              dropLng: dropPos.lng,
+              pickupLat: userPos.lat, pickupLng: userPos.lng,
+              dropLat: dropPos.lat, dropLng: dropPos.lng,
               pickupLabel: document.getElementById('pickupInput').value,
               dropLabel: document.getElementById('dropInput').value,
+              paymentMethod: paymentMethod,
               fare: sharedFare
             }
           });
 
           currentBookingId = String(existingSharedRide.id);
           sessionStorage.setItem('currentBookingId', currentBookingId);
-
-          document.getElementById('bookingStatus').textContent =
-            existingSharedRide.status === 'accepted'
-              ? `${existingSharedRide.driverName} is arriving! Joined shared ride!`
-              : 'Joined shared ride! Searching for drivers...';
-          document.getElementById('rideOtpDisplay').textContent = `OTP: ${existingSharedRide.otp}`;
-          document.getElementById('activeRidePanel')?.classList.remove('hidden');
-          document.getElementById('bookingPanel')?.classList.add('hidden');
-          document.getElementById('sharedStatus')?.classList.remove('hidden');
-
-          drawRoute([
-            { lat: existingSharedRide.pickupLat, lng: existingSharedRide.pickupLng },
-            { lat: userPos.lat, lng: userPos.lng },
-            { lat: dropPos.lat, lng: dropPos.lng },
-            { lat: existingSharedRide.dropLat, lng: existingSharedRide.dropLng }
-          ]);
-
+          sessionStorage.setItem('currentStep', 'tracking');
+          startTracking();
           return;
         }
       } catch (err) {
@@ -292,114 +430,206 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const coPassengerCoords = null;
-
     const newBooking = {
       userName: userData.name, userPhone: userData.phone,
       pickupLat: userPos.lat, pickupLng: userPos.lng, pickupLabel: document.getElementById('pickupInput').value,
       dropLat: dropPos.lat, dropLng: dropPos.lng, dropLabel: document.getElementById('dropInput').value,
-      vehicleType: selectedVehicle,
+      vehicleType: selectedVehicleType,
       isShared: isSharedRide,
-      coPassenger: coPassengerCoords,
-      status: 'active', fare: extractedFare,
+      femaleDriver: isFemaleDriver,
+      coPassenger: null,
+      paymentMethod: paymentMethod,
+      status: 'active', fare: selectedFare,
       otp: Math.floor(1000 + Math.random() * 9000).toString(),
-      driverName: 'Searching...'
+      driverName: 'Searching...',
+      user1PickedUp: false, user2PickedUp: false,
+      user1DroppedOff: false, user2DroppedOff: false
     };
 
     try {
       const savedBooking = await addBooking(newBooking);
       currentBookingId = String(savedBooking.id);
       sessionStorage.setItem('currentBookingId', currentBookingId);
-
-      document.getElementById('bookingStatus').textContent = isSharedRide
-        ? 'Searching for co-passenger & driver...'
-        : 'Searching for drivers...';
-      document.getElementById('rideOtpDisplay').textContent = `OTP: ${savedBooking.otp}`;
-      document.getElementById('activeRidePanel')?.classList.remove('hidden');
-      document.getElementById('bookingPanel')?.classList.add('hidden');
-
-      if (isSharedRide) document.getElementById('sharedStatus')?.classList.remove('hidden');
-
-      syncRouteWithMemory(savedBooking);
+      sessionStorage.setItem('currentStep', 'tracking');
+      startTracking();
     } catch (e) { alert("Failed to book ride."); }
   });
 
-  function syncRouteWithMemory(myRide) {
-    if (!currentRouteLayer) {
-      if (myRide.isShared && myRide.coPassenger && myRide.coPassenger.pickupLat) {
-        const iconPick = L.divIcon({ className: 'co-passenger-marker', html: '👥', iconSize: [20, 20] });
-        const iconDrop = L.divIcon({ className: 'co-passenger-marker', html: '👋', iconSize: [20, 20] });
-        if (!coPassengerMarker) {
-          L.marker([myRide.coPassenger.pickupLat, myRide.coPassenger.pickupLng], { icon: iconPick }).addTo(map).bindPopup('<b>Co-Passenger Pickup</b>');
-          L.marker([myRide.coPassenger.dropLat, myRide.coPassenger.dropLng], { icon: iconDrop }).addTo(map).bindPopup('<b>Co-Passenger Drop</b>');
-        }
-        document.getElementById('sharedStatus').classList.remove('hidden');
-        drawRoute([
-          { lat: myRide.pickupLat, lng: myRide.pickupLng },
-          { lat: myRide.coPassenger.pickupLat, lng: myRide.coPassenger.pickupLng },
-          { lat: myRide.coPassenger.dropLat, lng: myRide.coPassenger.dropLng },
-          { lat: myRide.dropLat, lng: myRide.dropLng }
-        ]);
-      } else if (myRide.isShared) {
-        document.getElementById('sharedStatus').classList.remove('hidden');
-        drawRoute([
-          { lat: myRide.pickupLat, lng: myRide.pickupLng },
-          { lat: myRide.dropLat, lng: myRide.dropLng }
-        ]);
-      } else {
-        drawRoute([
-          { lat: myRide.pickupLat, lng: myRide.pickupLng },
-          { lat: myRide.dropLat, lng: myRide.dropLng }
-        ]);
+  // ===== STEP 5: TRACKING =====
+  function startTracking() {
+    showStep('tracking');
+    document.getElementById('trackingSearching').classList.remove('hidden');
+    document.getElementById('trackingDriverInfo').classList.add('hidden');
+
+    if (rideType === 'shared') {
+      document.getElementById('trackingSharedInfo').classList.remove('hidden');
+    }
+
+    const paymentIcons = { cash: '💵 Cash', upi: '📱 UPI' };
+    document.getElementById('paymentBadge').textContent = paymentIcons[paymentMethod] || '💵 Cash';
+  }
+
+  document.getElementById('cancelRideBtn').addEventListener('click', async () => {
+    if (currentBookingId) {
+      if (confirm('Are you sure you want to cancel this ride?')) {
+        await updateBooking(currentBookingId, { status: 'cancelled' });
+        currentBookingId = null;
+        sessionStorage.removeItem('currentBookingId');
+        sessionStorage.removeItem('rideType');
+        sessionStorage.removeItem('paymentMethod');
+        sessionStorage.removeItem('currentStep');
+        window.location.reload();
       }
+    }
+  });
+
+  // ===== FEATURE 5: CO-PASSENGER PICKUP BLINKER =====
+  function showCoPassengerBlip(lat, lng) {
+    if (!mapInitialized) return;
+    if (coPassengerBlip) map.removeLayer(coPassengerBlip);
+
+    const blipIcon = L.divIcon({
+      className: 'co-passenger-blink',
+      html: '<div class="blip-outer"><div class="blip-inner">👥</div></div>',
+      iconSize: [40, 40],
+      iconAnchor: [20, 20]
+    });
+    coPassengerBlip = L.marker([lat, lng], { icon: blipIcon }).addTo(map);
+    coPassengerBlip.bindPopup('<b>Co-Passenger Pickup</b>');
+  }
+
+  // ===== FEATURE 6: VEHICLE MARKER =====
+  function updateVehicleMarker(driverPosData, vehicleType) {
+    if (!mapInitialized || !driverPosData) return;
+    const vehicleEmojis = { rickshaw: '🛺', mini: '🚗', cab: '🚖', suv: '🚙' };
+    const emoji = vehicleEmojis[vehicleType] || '🚗';
+
+    if (!driverMarker) {
+      const icon = L.divIcon({
+        className: 'vehicle-map-marker',
+        html: `<div class="vehicle-map-icon">${emoji}</div>`,
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
+      });
+      driverMarker = L.marker([driverPosData.lat, driverPosData.lng], { icon: icon }).addTo(map);
+      driverMarker.bindPopup('<b>Your Driver</b>');
+    } else {
+      driverMarker.setLatLng([driverPosData.lat, driverPosData.lng]);
     }
   }
 
+  // ===== POLLING =====
   setInterval(async () => {
     if (!currentBookingId) return;
     const allBookings = await loadBookings();
-
     const myRide = findBookingById(allBookings, currentBookingId);
 
     if (myRide) {
-      syncRouteWithMemory(myRide);
+      const isMainUser = userData.name === myRide.userName;
+      const isCoUser = myRide.coPassenger && userData.name === myRide.coPassenger.joinedUserId;
 
-      const statusTextEl = document.getElementById('bookingStatus');
-      const otpDisplayEl = document.getElementById('rideOtpDisplay');
+      let amPickedUp = false;
+      let amDroppedOff = false;
 
-      if (otpDisplayEl.textContent !== `OTP: ${myRide.otp}`)
-        otpDisplayEl.textContent = `OTP: ${myRide.otp}`;
+      if (isMainUser) {
+        amPickedUp = myRide.user1PickedUp;
+        amDroppedOff = myRide.user1DroppedOff;
+      } else if (isCoUser) {
+        amPickedUp = myRide.user2PickedUp;
+        amDroppedOff = myRide.user2DroppedOff;
+      } else if (!myRide.isShared) {
+        amPickedUp = myRide.status === 'in_progress';
+        amDroppedOff = myRide.status === 'completed';
+      }
 
-      let updatedText = 'Searching for drivers...';
-      if (myRide.isShared && !myRide.coPassenger?.joinedUserId)
-        updatedText = 'Searching for co-passenger & driver...';
-      if (myRide.isShared && myRide.coPassenger?.joinedUserId && myRide.status === 'active')
-        updatedText = 'Co-passenger joined! Searching for drivers...';
-      if (myRide.status === 'accepted')
-        updatedText = `${myRide.driverName} is arriving!`;
-      else if (myRide.status === 'in_progress')
-        updatedText = `Trip in progress with ${myRide.driverName}`;
-      else if (myRide.status === 'completed')
-        updatedText = `Trip completed!`;
+      // Feature 5: user does NOT see co-passenger destination
+      if (mapInitialized) {
+        const waypoints = [{ lat: myRide.pickupLat, lng: myRide.pickupLng }];
+        if (myRide.isShared && myRide.coPassenger && myRide.coPassenger.joinedUserId) {
+          // Show co-passenger pickup but NOT destination
+          waypoints.push({ lat: myRide.coPassenger.pickupLat, lng: myRide.coPassenger.pickupLng });
+        }
+        waypoints.push({ lat: myRide.dropLat, lng: myRide.dropLng });
+        drawRoute(waypoints);
+      }
 
-      if (statusTextEl.textContent !== updatedText)
-        statusTextEl.textContent = updatedText;
+      // Feature 5: Co-passenger pickup blinker
+      if (myRide.isShared && myRide.coPassenger && myRide.coPassenger.joinedUserId && mapInitialized) {
+        showCoPassengerBlip(myRide.coPassenger.pickupLat, myRide.coPassenger.pickupLng);
+      }
 
+      // Shared info
       if (myRide.isShared && myRide.coPassenger && myRide.coPassenger.joinedUserId) {
-        const sharedStatusEl = document.getElementById('sharedStatus');
-        sharedStatusEl.classList.remove('hidden');
-        if (!sharedStatusEl.dataset.shown) {
-          sharedStatusEl.textContent = `Co-passenger: ${myRide.coPassenger.joinedUserId}`;
-          sharedStatusEl.dataset.shown = 'true';
+        document.getElementById('trackingSharedInfo').classList.remove('hidden');
+        document.getElementById('trackingSharedInfo').textContent = '👥 Co-passenger: ' + myRide.coPassenger.joinedUserId;
+        document.getElementById('trackingSharedStatus').classList.remove('hidden');
+      }
+
+      if (myRide.status === 'accepted' || myRide.status === 'in_progress') {
+        document.getElementById('trackingSearching').classList.add('hidden');
+        document.getElementById('trackingDriverInfo').classList.remove('hidden');
+
+        document.getElementById('driverNameText').textContent = myRide.driverName || 'Driver';
+        const vehicleLabels = { rickshaw: 'Auto Rickshaw', mini: 'Mini', cab: 'Cab', suv: 'SUV' };
+        document.getElementById('driverVehicleText').textContent = vehicleLabels[myRide.vehicleType] || myRide.vehicleType;
+        document.getElementById('otpValue').textContent = myRide.otp || '----';
+
+        // Feature 6: Vehicle marker
+        if (myRide.driverPos) {
+          updateVehicleMarker(myRide.driverPos, myRide.vehicleType);
+
+          const dist = getDistance(myRide.driverPos.lat, myRide.driverPos.lng, myRide.pickupLat, myRide.pickupLng);
+          const eta = amPickedUp ? 0 : Math.max(1, Math.ceil(dist / 25 * 60));
+          document.getElementById('etaValue').textContent = eta;
+        } else {
+          document.getElementById('etaValue').textContent = '--';
+        }
+
+        // Status based on individual pickup/dropoff
+        if (amDroppedOff) {
+          document.getElementById('trackingRideStatus').textContent = 'Trip completed! Thank you for riding with GoShare.';
+          document.getElementById('etaValue').textContent = '0';
+          myDropOffDone = true;
+        } else if (amPickedUp) {
+          document.getElementById('trackingRideStatus').textContent = 'Trip in progress';
+        } else {
+          document.getElementById('trackingRideStatus').textContent = 'Driver is arriving';
         }
       }
 
-      if (myRide.status === 'completed') {
+      // Complete trip for this specific user
+      if (myDropOffDone || amDroppedOff || (myRide.status === 'completed' && !myRide.isShared)) {
         currentBookingId = null;
         sessionStorage.removeItem('currentBookingId');
-        sessionStorage.removeItem('vehiclePanelOpen');
-        setTimeout(() => { window.location.reload(); }, 3000);
+        sessionStorage.removeItem('rideType');
+        sessionStorage.removeItem('paymentMethod');
+        sessionStorage.removeItem('currentStep');
+        alert('Trip completed! Thank you for riding with GoShare.');
+        window.location.reload();
+      }
+
+      // Booking cancelled
+      if (myRide.status === 'cancelled') {
+        currentBookingId = null;
+        sessionStorage.removeItem('currentBookingId');
+        sessionStorage.removeItem('rideType');
+        sessionStorage.removeItem('paymentMethod');
+        sessionStorage.removeItem('currentStep');
+        alert('Ride was cancelled.');
+        window.location.reload();
       }
     }
   }, 3000);
+
+  // ===== FEATURE 1: STATE RECOVERY =====
+  if (currentBookingId) {
+    rideType = sessionStorage.getItem('rideType') || 'solo';
+    paymentMethod = sessionStorage.getItem('paymentMethod') || 'cash';
+    document.getElementById('rideTypeScreen').classList.add('hidden');
+    document.getElementById('mapScreen').classList.remove('hidden');
+    initMap();
+    setupAutocomplete('pickupInput', 'pickupDropdown', true);
+    setupAutocomplete('dropInput', 'dropDropdown', false);
+    startTracking();
+  }
 });
