@@ -1,232 +1,31 @@
 {
   "users": [
     {
-      "id": "usr_1791227009936",
+      "id": "usr_1791484793498",
       "phone": "8237830329",
       "name": "ayush",
       "role": "user",
-      "password": "$2b$10$iqVvU8QmoXgBoy6u7VLn.uMAPTsh.Umf7NLKuMFKYCUkRmuM5uNt2"
+      "password": "$2b$10$nZvzfGNoLnS21Z9kHtN44eI/jbnSUXR/9dsW9Irfg7iGqFUsrSfZe"
     },
     {
-      "id": "usr_1791227030842",
-      "phone": "9876543210",
-      "name": "apurva",
-      "role": "user",
-      "password": "$2b$10$ohFLohWNVxvf.mRHSu2fzuF8j5QNXhC.lSnIeMR4S2epohliEOnxa"
-    },
-    {
-      "id": "usr_1791396750598",
+      "id": "usr_1791484820013",
       "phone": "1234567890",
       "name": "apurva",
       "role": "user",
-      "password": "$2b$10$gjb1TOM040FxVOn/LFTmPuJnpvd8J6C7ixniiZ9Q/s0YNMa2FRDka"
+      "password": "$2b$10$d8nPxI76sxZuna329k23GekytK2JJdwD5uR4rS/.n5Op1ehALchVy"
     }
   ],
   "drivers": [
     {
-      "id": "drv_1791227085226",
-      "phone": "1234567890",
-      "name": "Keshav Jhaa",
+      "id": "drv_1791484878241",
+      "phone": "9876543210",
+      "name": "Keshav",
       "role": "driver",
-      "password": "$2b$10$MlQJLkq.krvTS2URFNCST.YP555jTxr3.PNMpVC4tMKHBfV2wvmWO",
+      "password": "$2b$10$zh5geZRjInp0mtX.69DkC./SCTm6xc3NmLgXUO/kIi/FsXTKlVlDO",
       "vehicleType": "rickshaw",
       "vehicleNumber": "MH 15 GF 1990"
-    },
-    {
-      "id": "drv_1791396775145",
-      "phone": "987654321",
-      "name": "Keshav Jhaa",
-      "role": "driver",
-      "password": "$2b$10$MMsZA7uCCTDc/VCE2Qzt4.M0Tc9Kmq.bFQt4GS2C7j7KwJR76bmmO",
-      "vehicleType": "",
-      "vehicleNumber": ""
-    },
-    {
-      "id": "drv_1791480472994",
-      "phone": "9876543210",
-      "name": "Keshav Jhaa",
-      "role": "driver",
-      "password": "$2b$10$2gS.wIoaZCma.QclLKPGKu.8qEjoXh1k10gxg/E7atzhEuenGoQR2",
-      "vehicleType": "",
-      "vehicleNumber": ""
     }
   ],
-  "bookings": [
-    {
-      "userName": "ayush",
-      "userPhone": "8237830329",
-      "pickupLat": 19.991147377387826,
-      "pickupLng": 73.80904685584186,
-      "pickupLabel": "Dwarka,  Nashik,  Nashik Subdistrict",
-      "dropLat": 20.006844,
-      "dropLng": 73.7848996,
-      "dropLabel": "Ashok Stambh Circle, Vakil Wadi, Shalimar, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
-      "vehicleType": "rickshaw",
-      "isShared": true,
-      "coPassenger": {
-        "joinedUserId": "apurva",
-        "joinedUserPhone": "9876543210",
-        "pickupLat": 20.0134117,
-        "pickupLng": 73.8219246,
-        "dropLat": 19.9942732,
-        "dropLng": 73.7970546,
-        "pickupLabel": "K.K. Wagh Institute of Engineering Education & Research, Mumbai Agra Highway Elevated Corridor, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
-        "dropLabel": "Dwarka Circle, Dwarka, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
-        "fare": 33
-      },
-      "status": "completed",
-      "fare": 33,
-      "otp": "5742",
-      "driverName": "Keshav Jhaa",
-      "id": "bk_1791227133497",
-      "createdAt": 1791227133497,
-      "driverPos": {
-        "lat": 19.991147377387826,
-        "lng": 73.80904685584186
-      }
-    },
-    {
-      "userName": "ayush",
-      "userPhone": "8237830329",
-      "pickupLat": 19.991143932314078,
-      "pickupLng": 73.8090264036554,
-      "pickupLabel": "Dwarka,  Nashik,  Nashik Subdistrict",
-      "dropLat": 20.006844,
-      "dropLng": 73.7848996,
-      "dropLabel": "Ashok Stambh Circle, Vakil Wadi, Shalimar, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
-      "vehicleType": "rickshaw",
-      "isShared": false,
-      "femaleDriver": false,
-      "coPassenger": null,
-      "paymentMethod": "cash",
-      "status": "completed",
-      "fare": 46,
-      "otp": "9340",
-      "driverName": "Keshav Jhaa",
-      "id": "bk_1791394605233",
-      "createdAt": 1791394605233,
-      "driverPos": {
-        "lat": 19.991124965856347,
-        "lng": 73.80902120456248
-      }
-    },
-    {
-      "userName": "ayush",
-      "userPhone": "8237830329",
-      "pickupLat": 19.991124965856347,
-      "pickupLng": 73.80902120456248,
-      "pickupLabel": "Dwarka,  Nashik,  Nashik Subdistrict",
-      "dropLat": 20.006844,
-      "dropLng": 73.7848996,
-      "dropLabel": "Ashok Stambh Circle, Vakil Wadi, Shalimar, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
-      "vehicleType": "rickshaw",
-      "isShared": true,
-      "femaleDriver": false,
-      "coPassenger": {
-        "joinedUserId": "apurva",
-        "joinedUserPhone": "9876543210",
-        "pickupLat": 20.0134117,
-        "pickupLng": 73.8219246,
-        "dropLat": 19.9942732,
-        "dropLng": 73.7970546,
-        "pickupLabel": "K.K. Wagh Institute of Engineering Education & Research, Mumbai Agra Highway Elevated Corridor, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
-        "dropLabel": "Dwarka Circle, Dwarka, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
-        "fare": 33
-      },
-      "paymentMethod": "cash",
-      "status": "completed",
-      "fare": 33,
-      "otp": "5577",
-      "driverName": "Keshav Jhaa",
-      "id": "bk_1791394962100",
-      "createdAt": 1791394962100,
-      "driverPos": {
-        "lat": 19.99114460902994,
-        "lng": 73.80905172509487
-      }
-    },
-    {
-      "userName": "apurva",
-      "userPhone": "1234567890",
-      "pickupLat": 20.0134117,
-      "pickupLng": 73.8219246,
-      "pickupLabel": "K.K. Wagh Institute of Engineering Education & Research, Mumbai Agra Highway Elevated Corridor, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
-      "dropLat": 19.9942732,
-      "dropLng": 73.7970546,
-      "dropLabel": "Dwarka Circle, Dwarka, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
-      "vehicleType": "rickshaw",
-      "isShared": true,
-      "femaleDriver": false,
-      "coPassenger": {
-        "joinedUserId": "ayush",
-        "joinedUserPhone": "8237830329",
-        "pickupLat": 19.991132264369917,
-        "pickupLng": 73.80902220395564,
-        "dropLat": 20.006844,
-        "dropLng": 73.7848996,
-        "pickupLabel": "Dwarka,  Nashik,  Nashik Subdistrict",
-        "dropLabel": "Ashok Stambh Circle, Vakil Wadi, Shalimar, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
-        "paymentMethod": "cash",
-        "fare": 36
-      },
-      "paymentMethod": "cash",
-      "status": "completed",
-      "fare": 36,
-      "otp": "3318",
-      "driverName": "Keshav Jhaa",
-      "user1PickedUp": true,
-      "user2PickedUp": true,
-      "user1DroppedOff": true,
-      "user2DroppedOff": true,
-      "id": "bk_1791396862239",
-      "createdAt": 1791396862239,
-      "driverPos": {
-        "lat": 19.991132264369917,
-        "lng": 73.80902220395564
-      }
-    },
-    {
-      "userName": "apurva",
-      "userPhone": "1234567890",
-      "pickupLat": 20.0134117,
-      "pickupLng": 73.8219246,
-      "pickupLabel": "K.K. Wagh Institute of Engineering Education & Research, Mumbai Agra Highway Elevated Corridor, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
-      "dropLat": 19.9942732,
-      "dropLng": 73.7970546,
-      "dropLabel": "Dwarka Circle, Dwarka, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
-      "vehicleType": "rickshaw",
-      "isShared": true,
-      "femaleDriver": false,
-      "coPassenger": {
-        "joinedUserId": "ayush",
-        "joinedUserPhone": "8237830329",
-        "pickupLat": 19.99112609129276,
-        "pickupLng": 73.80902374522434,
-        "dropLat": 20.006844,
-        "dropLng": 73.7848996,
-        "pickupLabel": "Dwarka,  Nashik,  Nashik Subdistrict",
-        "dropLabel": "Ashok Stambh Circle, Vakil Wadi, Shalimar, Nashik, Nashik Subdistrict, Nashik District, Maharashtra, 422001, India",
-        "paymentMethod": "cash",
-        "fare": 36
-      },
-      "paymentMethod": "cash",
-      "status": "accepted",
-      "fare": 36,
-      "otp": "2829",
-      "driverName": "Keshav Jhaa",
-      "user1PickedUp": false,
-      "user2PickedUp": false,
-      "user1DroppedOff": false,
-      "user2DroppedOff": false,
-      "id": "bk_1791481253170",
-      "createdAt": 1791481253170,
-      "driverPhone": "9876543210",
-      "driverId": "drv_1791480472994",
-      "driverPos": {
-        "lat": 19.991566102414616,
-        "lng": 73.80930821074146
-      }
-    }
-  ],
+  "bookings": [],
   "sosAlerts": []
 }

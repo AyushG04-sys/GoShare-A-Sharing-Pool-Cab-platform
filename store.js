@@ -46,35 +46,17 @@ export const loadBookings = async () => {
     }
 };
 
-export const addBooking = async (bookingData) => {
-    try {
-        const response = await fetch(`${API_BASE}/bookings`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(bookingData)
-        });
-        if (!response.ok) throw new Error('Failed to create booking');
-        return await response.json();
-    } catch (err) {
-        console.error("Error adding booking:", err);
-    }
-};
-
+// ===== CRITICAL FIX: Removed redundant loadBookings() + merge =====
+// The old code did loadBookings() → merge → PATCH, which caused race conditions.
+// When accept handler and polling loop ran concurrently, the polling's
+// stale "status: active" would OVERWRITE the accept's "status: accepted".
+// Now we just send updateData directly — the server handles the merge safely.
 export const updateBooking = async (id, updateData) => {
     try {
-        const allBookings = await loadBookings();
-        const currentBooking = findBookingById(allBookings, id);
-
-        if (!currentBooking) {
-            throw new Error('Booking not found for update');
-        }
-
-        const mergedBooking = { ...currentBooking, ...updateData };
-
         const response = await fetch(`${API_BASE}/bookings/${id}`, {
             method: 'PATCH',
             headers: getAuthHeaders(),
-            body: JSON.stringify(mergedBooking)
+            body: JSON.stringify(updateData)
         });
         if (!response.ok) throw new Error('Failed to update booking');
         return await response.json();
