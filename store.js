@@ -46,11 +46,6 @@ export const loadBookings = async () => {
     }
 };
 
-// ===== CRITICAL FIX: Removed redundant loadBookings() + merge =====
-// The old code did loadBookings() → merge → PATCH, which caused race conditions.
-// When accept handler and polling loop ran concurrently, the polling's
-// stale "status: active" would OVERWRITE the accept's "status: accepted".
-// Now we just send updateData directly — the server handles the merge safely.
 export const updateBooking = async (id, updateData) => {
     try {
         const response = await fetch(`${API_BASE}/bookings/${id}`, {

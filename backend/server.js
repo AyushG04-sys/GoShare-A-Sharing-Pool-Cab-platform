@@ -16,6 +16,9 @@ const JWT_SECRET = 'GoShare_Super_Secret_Key_2026';
 app.use(cors());
 app.use(bodyParser.json());
 
+// Serve static frontend files from the parent directory
+app.use(express.static(path.join(__dirname, '../')));
+
 // --- DB Helpers ---
 const readDB = () => {
   try {
@@ -40,15 +43,14 @@ const writeDB = (data) => fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2
 // 1. Verify JWT Token Middleware
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  // Expecting format: "Bearer <token>"
   const token = authHeader && authHeader.split(' ')[1]; 
   
   if (!token) return res.status(401).json({ error: 'Access denied. No token provided.' });
 
   try {
     const verified = jwt.verify(token, JWT_SECRET);
-    req.user = verified; // Attaches { id, role } to the request object
-    next(); // Pass to the next function/route
+    req.user = verified;
+    next();
   } catch (error) {
     res.status(403).json({ error: 'Invalid or expired token.' });
   }
@@ -69,7 +71,6 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { phone, name, password, role = 'user', vehicleType, vehicleNumber } = req.body;
     
-    // Require a password now for security
     if (!phone || !password) {
       return res.status(400).json({ error: 'Phone and password are required' });
     }
@@ -79,9 +80,6 @@ app.post('/api/auth/login', async (req, res) => {
     let account = targetCollection.find(u => u.phone === phone);
 
     if (account) {
-      // User exists -> LOGIN FLOW
-      
-      // SAFETY FIX: If it's an old test account without a password, assign one now to prevent crashes
       if (!account.password) {
         const salt = await bcrypt.genSalt(10);
         account.password = await bcrypt.hash(password, salt);
@@ -92,14 +90,12 @@ app.post('/api/auth/login', async (req, res) => {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
       
-      // Update fields if provided
       if (name) account.name = name;
       if (role === 'driver') {
         account.vehicleType = vehicleType || account.vehicleType;
         account.vehicleNumber = vehicleNumber || account.vehicleNumber;
       }
     } else {
-      // User doesn't exist -> REGISTRATION FLOW
       if (!name) return res.status(400).json({ error: 'Name is required for registration' });
       
       const salt = await bcrypt.genSalt(10);
@@ -111,7 +107,7 @@ app.post('/api/auth/login', async (req, res) => {
         phone,
         name,
         role,
-        password: hashedPassword, // Store the hash, NEVER the plain text
+        password: hashedPassword,
         ...(role === 'driver' && { vehicleType: vehicleType || '', vehicleNumber: vehicleNumber || '' })
       };
       targetCollection.push(account);
@@ -119,10 +115,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     writeDB(db);
 
-    // Generate JWT Token
     const token = jwt.sign({ id: account.id, role: account.role }, JWT_SECRET, { expiresIn: '24h' });
-
-    // Remove password from response for safety
     const { password: _, ...safeAccountData } = account;
 
     res.json({
@@ -137,7 +130,6 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Protected Route: Bookings (Requires valid token)
 app.get('/api/bookings', verifyToken, (req, res) => {
   const db = readDB();
   const { userId } = req.query;
@@ -181,7 +173,6 @@ app.delete('/api/bookings/:id', verifyToken, (req, res) => {
   res.json({ message: 'Booking deleted successfully' });
 });
 
-// Protected Route: SOS
 app.post('/api/sos', verifyToken, (req, res) => {
   const db = readDB();
   const alert = { ...req.body, id: 'sos_' + Date.now(), timestamp: Date.now() };
@@ -190,7 +181,6 @@ app.post('/api/sos', verifyToken, (req, res) => {
   res.status(201).json(alert);
 });
 
-// RBAC Protected Route: Admin Stats (Requires Token AND Admin Role)
 app.get('/api/admin/stats', verifyToken, requireAdmin, (req, res) => {
   const db = readDB();
   res.json({

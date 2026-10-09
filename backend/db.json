@@ -1,27 +1,20 @@
 {
   "users": [
     {
-      "id": "usr_1791484793498",
+      "id": "usr_1791565229642",
       "phone": "8237830329",
       "name": "ayush",
       "role": "user",
-      "password": "$2b$10$nZvzfGNoLnS21Z9kHtN44eI/jbnSUXR/9dsW9Irfg7iGqFUsrSfZe"
-    },
-    {
-      "id": "usr_1791484820013",
-      "phone": "1234567890",
-      "name": "apurva",
-      "role": "user",
-      "password": "$2b$10$d8nPxI76sxZuna329k23GekytK2JJdwD5uR4rS/.n5Op1ehALchVy"
+      "password": "$2b$10$6asxDyqzyQOYvV40xRMEteXYlByysYG.hj1ls076DIQB6fjnYJQMy"
     }
   ],
   "drivers": [
     {
-      "id": "drv_1791484878241",
-      "phone": "9876543210",
-      "name": "Keshav",
+      "id": "drv_1791565789608",
+      "phone": "1234567890",
+      "name": "Keshav Jhaa",
       "role": "driver",
-      "password": "$2b$10$zh5geZRjInp0mtX.69DkC./SCTm6xc3NmLgXUO/kIi/FsXTKlVlDO",
+      "password": "$2b$10$1iiOfbc/TVZZnNHFNsQ8CO2q3IkWBu9yRN3AxpXwIfcDZYpb09hei",
       "vehicleType": "rickshaw",
       "vehicleNumber": "MH 15 GF 1990"
     }
