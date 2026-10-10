@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = '/api';
 
 const getAuthHeaders = () => {
     const token = sessionStorage.getItem('authToken');
@@ -102,6 +102,30 @@ export const triggerSOS = async (alertData) => {
     } catch (err) {
         console.error("Error triggering SOS:", err);
     }
+};
+
+export const listenForSOS = (callback) => {
+    let stopped = false;
+
+    const poll = async () => {
+        try {
+            const response = await fetch(`${API_BASE}/admin/stats`, {
+                headers: getAuthHeaders()
+            });
+            if (!response.ok) throw new Error('Failed to fetch SOS alerts');
+            const { sosAlerts } = await response.json();
+            if (!stopped) callback(sosAlerts);
+        } catch (err) {
+            console.error("Error loading SOS alerts:", err);
+        }
+    };
+
+    poll();
+    const interval = setInterval(poll, 10000);
+    return () => {
+        stopped = true;
+        clearInterval(interval);
+    };
 };
 
 export const findBookingById = (bookings, id) => {

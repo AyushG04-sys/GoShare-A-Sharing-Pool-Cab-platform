@@ -81,8 +81,10 @@ const init = () => {
 
     try {
       authActionBtn.textContent = 'Processing...';
-      await loginUser(userData);
-      window.location.href = currentRole === 'user' ? 'user.html' : 'driver.html';
+      const user = await loginUser(userData);
+      window.location.href = user.role === 'admin'
+        ? 'admin.html'
+        : currentRole === 'user' ? 'user.html' : 'driver.html';
     } catch (e) {
       console.error("Auth error:", e);
       alert(`Authentication failed: ${e.message}`);

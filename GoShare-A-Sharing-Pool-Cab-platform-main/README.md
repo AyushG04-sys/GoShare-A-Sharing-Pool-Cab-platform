@@ -115,21 +115,42 @@ git clone https://github.com/AyushG04-sys/GoShare-A-Sharing-Pool-Cab-platform.gi
 cd GoShare-A-Sharing-Pool-Cab-platform
 ```
 
-### 2. Setup the Backend
+### 2. Configure Supabase
+
+Create a Supabase project and run [`supabase/schema.sql`](./supabase/schema.sql) in its SQL Editor.
+
+### 3. Run the Frontend and API locally
+
+Link the project to Vercel once, pull its environment variables, and run the Vercel development server:
 ```bash
-cd backend
-npm install
-npm start
+npx vercel link
+npx vercel env pull .env.local
+npx vercel dev
 ```
-The server will typically start on `http://localhost:3000` (check `server.js` for the port).
+Set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `JWT_SECRET` in the linked Vercel project's environment settings before pulling them. Do not commit `.env.local`.
 
-### 3. Run the Frontend
-Since the frontend uses `fetch` calls to the backend and external APIs, you **must** run it via a local web server:
-- **VS Code**: Right-click `index.html` $\rightarrow$ "Open with Live Server".
-- **Python**: `python -m http.server 8000`
-- **Node**: `npx serve .`
+## Deploy on Vercel
 
-Then open `http://localhost:8000` (or your server's port) in your browser.
+The static frontend and the API functions deploy together from the repository root. Vercel serves the HTML, CSS, and JavaScript files directly; there is no frontend build command.
+
+1. Create a Supabase project and run [`supabase/schema.sql`](./supabase/schema.sql) in its SQL Editor.
+2. Import this repository into Vercel with this project as the **Root Directory**. Leave the **Build Command** blank and the **Output Directory** blank.
+3. Add these Vercel environment variables for Production (and Preview if needed):
+   - `SUPABASE_URL`: the project URL from Supabase.
+   - `SUPABASE_SERVICE_ROLE_KEY`: the Supabase service-role key. Keep it server-side; do not add it to frontend code.
+   - `JWT_SECRET`: a private random secret of at least 32 characters.
+4. Deploy. The API routes are implemented in `api/` and use Supabase for persistent storage. The backend files in the legacy `backend/` directory are not used by this Vercel deployment. Existing records in `backend/db.json` are not imported automatically; register new accounts after deploying.
+
+To use the admin panel, register a regular user account first, then change that account's role in Supabase SQL Editor:
+
+```sql
+update public.app_records
+set payload = jsonb_set(payload, '{role}', '"admin"'::jsonb)
+where collection = 'users'
+  and phone = 'YOUR_PHONE_NUMBER';
+```
+
+Sign in again using the same account from the User tab; the app will open `/admin.html`. Do not allow public admin registration.
 
 ### Test the full flow
 1. **User Tab**: Open `index.html` $\rightarrow$ User $\rightarrow$ Login $\rightarrow$ Book a ride.
