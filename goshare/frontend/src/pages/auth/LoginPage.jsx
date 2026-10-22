@@ -45,7 +45,7 @@ export default function LoginPage({ onNavigate }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '2rem 1.5rem',
+        padding: 'clamp(1rem, 4vw, 2rem) 1rem',
         background: 'radial-gradient(ellipse at 50% 20%, rgba(16, 185, 129, 0.12), transparent 70%)',
       }}
     >
@@ -57,7 +57,7 @@ export default function LoginPage({ onNavigate }) {
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-lg)',
           boxShadow: 'var(--shadow-lg)',
-          padding: '2.5rem',
+          padding: 'clamp(1.25rem, 5vw, 2.25rem)',
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>

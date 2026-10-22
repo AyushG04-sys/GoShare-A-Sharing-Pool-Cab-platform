@@ -34,7 +34,7 @@ export default function RideHistoryPage({ onNavigate }) {
   }, []);
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', padding: '2.5rem 1.5rem' }}>
+    <div style={{ height: '100%', overflowY: 'auto', padding: 'clamp(1rem, 4vw, 2.5rem) 1rem' }}>
       <div style={{ maxWidth: 1040, margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
@@ -86,7 +86,7 @@ export default function RideHistoryPage({ onNavigate }) {
                 key={ride.id}
                 className="card card-hover"
                 style={{
-                  padding: '1.25rem 1.5rem',
+                  padding: '1.25rem 1.25rem',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -95,8 +95,8 @@ export default function RideHistoryPage({ onNavigate }) {
                   borderLeft: `4px solid ${isCompleted ? 'var(--accent-success)' : 'var(--accent-danger)'}`,
                 }}
               >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', maxWidth: 540 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', maxWidth: 540, flex: '1 1 280px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                     <span className="badge badge-primary">{ride.vehicle_category.toUpperCase()}</span>
                     <span className="badge badge-success">{ride.ride_type.toUpperCase()}</span>
                     <span

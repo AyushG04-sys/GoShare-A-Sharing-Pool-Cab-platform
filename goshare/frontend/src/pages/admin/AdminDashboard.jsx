@@ -81,7 +81,7 @@ export default function AdminDashboard({ onNavigate }) {
   };
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', padding: '2.5rem 1.5rem' }}>
+    <div style={{ height: '100%', overflowY: 'auto', padding: 'clamp(1rem, 4vw, 2.5rem) 1rem' }}>
       <div style={{ maxWidth: 1320, margin: '0 auto' }}>
       {/* Admin Title */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -151,30 +151,35 @@ export default function AdminDashboard({ onNavigate }) {
           borderBottom: '1px solid var(--border-medium)',
           marginBottom: '1.5rem',
           overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
           paddingBottom: '0.5rem',
         }}
       >
         <button
           className={`btn ${activeTab === 'sos' ? 'btn-danger' : 'btn-ghost'}`}
           onClick={() => setActiveTab('sos')}
+          style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
         >
           <ShieldAlert size={16} /> Emergency SOS Alerts ({sosAlerts.length})
         </button>
         <button
           className={`btn ${activeTab === 'drivers' ? 'btn-primary' : 'btn-ghost'}`}
           onClick={() => setActiveTab('drivers')}
+          style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
         >
           <Car size={16} /> Driver Leaderboard ({drivers.length})
         </button>
         <button
           className={`btn ${activeTab === 'bookings' ? 'btn-primary' : 'btn-ghost'}`}
           onClick={() => setActiveTab('bookings')}
+          style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
         >
           <FileText size={16} /> All Bookings ({bookings.length})
         </button>
         <button
           className={`btn ${activeTab === 'users' ? 'btn-primary' : 'btn-ghost'}`}
           onClick={() => setActiveTab('users')}
+          style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
         >
           <Users size={16} /> User Directory ({users.length})
         </button>

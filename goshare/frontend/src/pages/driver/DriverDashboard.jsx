@@ -477,7 +477,7 @@ export default function DriverDashboard({ onNavigate }) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   className="btn-action btn-action-green"
@@ -882,7 +882,7 @@ export default function DriverDashboard({ onNavigate }) {
                     )}
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.35rem' }}>
+                  <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.35rem', flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       className="btn-action btn-action-green"
@@ -989,7 +989,7 @@ export default function DriverDashboard({ onNavigate }) {
                           <div><strong style={{ color: '#10b981' }}>Pickup:</strong> {coReq.pickup_label}</div>
                           <div style={{ marginTop: '0.15rem' }}><strong style={{ color: '#ef4444' }}>Dropoff:</strong> {coReq.destination_label}</div>
                         </div>
-                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
                           <button
                             type="button"
                             className="btn-action btn-action-green"

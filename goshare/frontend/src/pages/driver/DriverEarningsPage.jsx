@@ -24,7 +24,7 @@ export default function DriverEarningsPage({ onNavigate }) {
   }, []);
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', padding: '2.5rem 1.5rem' }}>
+    <div style={{ height: '100%', overflowY: 'auto', padding: 'clamp(1rem, 4vw, 2.5rem) 1rem' }}>
       <div style={{ maxWidth: 1040, margin: '0 auto' }}>
       <button
         className="btn-back"

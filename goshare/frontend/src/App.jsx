@@ -82,10 +82,10 @@ export default function App() {
   }
 
   return (
-    <div style={{ height: '100vh', width: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div style={{ height: '100%', minHeight: '100dvh', width: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Navbar onNavigate={handleNavigate} currentPage={currentPage} />
 
-      <main style={{ flex: 1, height: 'calc(100vh - 60px)', width: '100%', overflow: 'hidden', position: 'relative' }}>
+      <main style={{ flex: 1, height: 'calc(100vh - 60px)', minHeight: 0, width: '100%', overflow: 'hidden', position: 'relative' }}>
         {currentPage === 'passenger' && <PassengerDashboard onNavigate={handleNavigate} />}
         {currentPage === 'history' && <RideHistoryPage onNavigate={handleNavigate} />}
         {currentPage === 'driver' && <DriverDashboard onNavigate={handleNavigate} />}

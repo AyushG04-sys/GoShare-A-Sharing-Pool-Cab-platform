@@ -4,23 +4,41 @@
 -- ============================================================
 
 -- ============================================================
--- 1. ENUM TYPES
+-- 1. ENUM TYPES (Idempotent creation)
 -- ============================================================
 
-CREATE TYPE public.user_role AS ENUM ('user', 'driver', 'admin');
-CREATE TYPE public.vehicle_category AS ENUM ('rickshaw', 'mini', 'cab', 'suv');
-CREATE TYPE public.booking_status AS ENUM ('pending', 'accepted', 'in_progress', 'completed', 'cancelled');
-CREATE TYPE public.ride_type AS ENUM ('solo', 'shared');
-CREATE TYPE public.payment_method AS ENUM ('cash', 'upi');
-CREATE TYPE public.waypoint_type AS ENUM ('pickup', 'dropoff');
-CREATE TYPE public.sos_status AS ENUM ('active', 'acknowledged', 'resolved');
-CREATE TYPE public.gender_type AS ENUM ('male', 'female', 'other');
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+    CREATE TYPE public.user_role AS ENUM ('user', 'driver', 'admin');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'vehicle_category') THEN
+    CREATE TYPE public.vehicle_category AS ENUM ('rickshaw', 'mini', 'cab', 'suv');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'booking_status') THEN
+    CREATE TYPE public.booking_status AS ENUM ('pending', 'accepted', 'in_progress', 'completed', 'cancelled');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ride_type') THEN
+    CREATE TYPE public.ride_type AS ENUM ('solo', 'shared');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_method') THEN
+    CREATE TYPE public.payment_method AS ENUM ('cash', 'upi');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'waypoint_type') THEN
+    CREATE TYPE public.waypoint_type AS ENUM ('pickup', 'dropoff');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'sos_status') THEN
+    CREATE TYPE public.sos_status AS ENUM ('active', 'acknowledged', 'resolved');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'gender_type') THEN
+    CREATE TYPE public.gender_type AS ENUM ('male', 'female', 'other');
+  END IF;
+END $$;
 
 -- ============================================================
 -- 2. PROFILES TABLE
 -- ============================================================
 
-CREATE TABLE public.profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL CHECK (char_length(name) >= 1 AND char_length(name) <= 100),
   phone TEXT CHECK (phone IS NULL OR phone ~ '^\d{10}$'),
@@ -42,16 +60,16 @@ CREATE TABLE public.profiles (
 );
 
 -- Indexes
-CREATE INDEX idx_profiles_role ON public.profiles(role);
-CREATE INDEX idx_profiles_phone ON public.profiles(phone);
-CREATE INDEX idx_profiles_available_drivers ON public.profiles(role, is_available, vehicle_type) 
+CREATE INDEX IF NOT EXISTS idx_profiles_role ON public.profiles(role);
+CREATE INDEX IF NOT EXISTS idx_profiles_phone ON public.profiles(phone);
+CREATE INDEX IF NOT EXISTS idx_profiles_available_drivers ON public.profiles(role, is_available, vehicle_type) 
   WHERE role = 'driver' AND is_available = true;
 
 -- ============================================================
 -- 3. BOOKINGS TABLE
 -- ============================================================
 
-CREATE TABLE public.bookings (
+CREATE TABLE IF NOT EXISTS public.bookings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   ride_type public.ride_type NOT NULL DEFAULT 'solo',
   vehicle_category public.vehicle_category NOT NULL,
@@ -109,19 +127,19 @@ CREATE TABLE public.bookings (
 );
 
 -- Indexes
-CREATE INDEX idx_bookings_status ON public.bookings(status);
-CREATE INDEX idx_bookings_created_by ON public.bookings(created_by);
-CREATE INDEX idx_bookings_driver_id ON public.bookings(driver_id);
-CREATE INDEX idx_bookings_shared_matching ON public.bookings(ride_type, status, vehicle_category, created_at) 
+CREATE INDEX IF NOT EXISTS idx_bookings_status ON public.bookings(status);
+CREATE INDEX IF NOT EXISTS idx_bookings_created_by ON public.bookings(created_by);
+CREATE INDEX IF NOT EXISTS idx_bookings_driver_id ON public.bookings(driver_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_shared_matching ON public.bookings(ride_type, status, vehicle_category, created_at) 
   WHERE ride_type = 'shared' AND status = 'pending';
-CREATE INDEX idx_bookings_active ON public.bookings(status) 
+CREATE INDEX IF NOT EXISTS idx_bookings_active ON public.bookings(status) 
   WHERE status IN ('pending', 'accepted', 'in_progress');
 
 -- ============================================================
 -- 4. BOOKING PASSENGERS (normalized passenger-trip association)
 -- ============================================================
 
-CREATE TABLE public.booking_passengers (
+CREATE TABLE IF NOT EXISTS public.booking_passengers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_id UUID NOT NULL REFERENCES public.bookings(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES public.profiles(id),
@@ -160,14 +178,14 @@ CREATE TABLE public.booking_passengers (
   )
 );
 
-CREATE INDEX idx_bp_booking ON public.booking_passengers(booking_id);
-CREATE INDEX idx_bp_user ON public.booking_passengers(user_id);
+CREATE INDEX IF NOT EXISTS idx_bp_booking ON public.booking_passengers(booking_id);
+CREATE INDEX IF NOT EXISTS idx_bp_user ON public.booking_passengers(user_id);
 
 -- ============================================================
 -- 5. BOOKING WAYPOINTS (ordered stop sequence)
 -- ============================================================
 
-CREATE TABLE public.booking_waypoints (
+CREATE TABLE IF NOT EXISTS public.booking_waypoints (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_id UUID NOT NULL REFERENCES public.bookings(id) ON DELETE CASCADE,
   passenger_id UUID NOT NULL REFERENCES public.booking_passengers(id) ON DELETE CASCADE,
@@ -195,14 +213,14 @@ CREATE TABLE public.booking_waypoints (
   CONSTRAINT unique_stop_order_per_booking UNIQUE (booking_id, stop_order)
 );
 
-CREATE INDEX idx_waypoints_booking ON public.booking_waypoints(booking_id);
-CREATE INDEX idx_waypoints_order ON public.booking_waypoints(booking_id, stop_order);
+CREATE INDEX IF NOT EXISTS idx_waypoints_booking ON public.booking_waypoints(booking_id);
+CREATE INDEX IF NOT EXISTS idx_waypoints_order ON public.booking_waypoints(booking_id, stop_order);
 
 -- ============================================================
 -- 6. RATINGS TABLE
 -- ============================================================
 
-CREATE TABLE public.ratings (
+CREATE TABLE IF NOT EXISTS public.ratings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_id UUID NOT NULL REFERENCES public.bookings(id),
   passenger_id UUID NOT NULL REFERENCES public.profiles(id),
@@ -215,14 +233,14 @@ CREATE TABLE public.ratings (
   CONSTRAINT unique_rating_per_passenger_booking UNIQUE (booking_id, passenger_id)
 );
 
-CREATE INDEX idx_ratings_driver ON public.ratings(driver_id);
-CREATE INDEX idx_ratings_booking ON public.ratings(booking_id);
+CREATE INDEX IF NOT EXISTS idx_ratings_driver ON public.ratings(driver_id);
+CREATE INDEX IF NOT EXISTS idx_ratings_booking ON public.ratings(booking_id);
 
 -- ============================================================
 -- 7. SOS ALERTS TABLE
 -- ============================================================
 
-CREATE TABLE public.sos_alerts (
+CREATE TABLE IF NOT EXISTS public.sos_alerts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   reported_by UUID NOT NULL REFERENCES public.profiles(id),
   booking_id UUID REFERENCES public.bookings(id),
@@ -234,8 +252,8 @@ CREATE TABLE public.sos_alerts (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_sos_status ON public.sos_alerts(status);
-CREATE INDEX idx_sos_booking ON public.sos_alerts(booking_id);
+CREATE INDEX IF NOT EXISTS idx_sos_status ON public.sos_alerts(status);
+CREATE INDEX IF NOT EXISTS idx_sos_booking ON public.sos_alerts(booking_id);
 
 -- ============================================================
 -- 8. UPDATED_AT TRIGGER FUNCTION
@@ -249,14 +267,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_profiles_updated_at ON public.profiles;
 CREATE TRIGGER set_profiles_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
+DROP TRIGGER IF EXISTS set_bookings_updated_at ON public.bookings;
 CREATE TRIGGER set_bookings_updated_at
   BEFORE UPDATE ON public.bookings
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
+DROP TRIGGER IF EXISTS set_sos_updated_at ON public.sos_alerts;
 CREATE TRIGGER set_sos_updated_at
   BEFORE UPDATE ON public.sos_alerts
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
@@ -278,6 +299,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
@@ -295,27 +317,27 @@ ALTER TABLE public.ratings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sos_alerts ENABLE ROW LEVEL SECURITY;
 
 -- ---- PROFILES ----
--- Users can read all profiles (needed for driver info display)
+DROP POLICY IF EXISTS "Profiles are viewable by authenticated users" ON public.profiles;
 CREATE POLICY "Profiles are viewable by authenticated users"
   ON public.profiles FOR SELECT
   TO authenticated
   USING (true);
 
--- Users can update their own profile
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile"
   ON public.profiles FOR UPDATE
   TO authenticated
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
--- Profiles are created by trigger, but allow insert for service role
+DROP POLICY IF EXISTS "Service role can insert profiles" ON public.profiles;
 CREATE POLICY "Service role can insert profiles"
   ON public.profiles FOR INSERT
   TO service_role
   WITH CHECK (true);
 
 -- ---- BOOKINGS ----
--- Authenticated users can view bookings they're involved in
+DROP POLICY IF EXISTS "Users can view own bookings" ON public.bookings;
 CREATE POLICY "Users can view own bookings"
   ON public.bookings FOR SELECT
   TO authenticated
@@ -331,13 +353,14 @@ CREATE POLICY "Users can view own bookings"
     ))
   );
 
--- Users can create bookings
+DROP POLICY IF EXISTS "Users can create bookings" ON public.bookings;
 CREATE POLICY "Users can create bookings"
   ON public.bookings FOR INSERT
   TO authenticated
   WITH CHECK (created_by = auth.uid());
 
 -- Updates handled via RPC functions (service_role), but allow direct updates for admin
+DROP POLICY IF EXISTS "Service role can update bookings" ON public.bookings;
 CREATE POLICY "Service role can update bookings"
   ON public.bookings FOR UPDATE
   TO service_role
@@ -345,6 +368,7 @@ CREATE POLICY "Service role can update bookings"
   WITH CHECK (true);
 
 -- ---- BOOKING PASSENGERS ----
+DROP POLICY IF EXISTS "Users can view booking passengers for their bookings" ON public.booking_passengers;
 CREATE POLICY "Users can view booking passengers for their bookings"
   ON public.booking_passengers FOR SELECT
   TO authenticated
@@ -354,6 +378,7 @@ CREATE POLICY "Users can view booking passengers for their bookings"
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
+DROP POLICY IF EXISTS "Service role manages booking passengers" ON public.booking_passengers;
 CREATE POLICY "Service role manages booking passengers"
   ON public.booking_passengers FOR ALL
   TO service_role
@@ -361,6 +386,7 @@ CREATE POLICY "Service role manages booking passengers"
   WITH CHECK (true);
 
 -- ---- BOOKING WAYPOINTS ----
+DROP POLICY IF EXISTS "Users can view waypoints for their bookings" ON public.booking_waypoints;
 CREATE POLICY "Users can view waypoints for their bookings"
   ON public.booking_waypoints FOR SELECT
   TO authenticated
@@ -376,6 +402,7 @@ CREATE POLICY "Users can view waypoints for their bookings"
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
+DROP POLICY IF EXISTS "Service role manages waypoints" ON public.booking_waypoints;
 CREATE POLICY "Service role manages waypoints"
   ON public.booking_waypoints FOR ALL
   TO service_role
@@ -383,11 +410,13 @@ CREATE POLICY "Service role manages waypoints"
   WITH CHECK (true);
 
 -- ---- RATINGS ----
+DROP POLICY IF EXISTS "Ratings are viewable by authenticated users" ON public.ratings;
 CREATE POLICY "Ratings are viewable by authenticated users"
   ON public.ratings FOR SELECT
   TO authenticated
   USING (true);
 
+DROP POLICY IF EXISTS "Passengers can create ratings for their completed bookings" ON public.ratings;
 CREATE POLICY "Passengers can create ratings for their completed bookings"
   ON public.ratings FOR INSERT
   TO authenticated
@@ -404,11 +433,13 @@ CREATE POLICY "Passengers can create ratings for their completed bookings"
   );
 
 -- ---- SOS ALERTS ----
+DROP POLICY IF EXISTS "Users can create SOS alerts" ON public.sos_alerts;
 CREATE POLICY "Users can create SOS alerts"
   ON public.sos_alerts FOR INSERT
   TO authenticated
   WITH CHECK (reported_by = auth.uid());
 
+DROP POLICY IF EXISTS "Users can view their own SOS alerts" ON public.sos_alerts;
 CREATE POLICY "Users can view their own SOS alerts"
   ON public.sos_alerts FOR SELECT
   TO authenticated
@@ -417,6 +448,7 @@ CREATE POLICY "Users can view their own SOS alerts"
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
+DROP POLICY IF EXISTS "Admins can update SOS alerts" ON public.sos_alerts;
 CREATE POLICY "Admins can update SOS alerts"
   ON public.sos_alerts FOR UPDATE
   TO authenticated
@@ -841,14 +873,39 @@ $$;
 -- IMPORTANT: Never allow admin self-registration via the API.
 
 -- ============================================================
--- 13. REALTIME PUBLICATION
+-- 13. REALTIME PUBLICATION (Idempotent)
 -- ============================================================
 
--- Enable realtime for tables that benefit from live updates
-ALTER PUBLICATION supabase_realtime ADD TABLE public.bookings;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.booking_passengers;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.booking_waypoints;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.sos_alerts;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'bookings'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.bookings;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'booking_passengers'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.booking_passengers;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'booking_waypoints'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.booking_waypoints;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'sos_alerts'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.sos_alerts;
+  END IF;
+END $$;
 
 -- ============================================================
 -- 14. GRANT PERMISSIONS

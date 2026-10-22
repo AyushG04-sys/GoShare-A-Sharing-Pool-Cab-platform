@@ -39,21 +39,21 @@ export default function LandingPage({ onNavigate }) {
       <section
         style={{
           background: 'radial-gradient(ellipse at 50% 20%, rgba(37, 99, 235, 0.2), transparent 70%)',
-          padding: '4rem 1.5rem 2rem',
+          padding: 'clamp(2.5rem, 6vw, 4rem) 1rem 2rem',
           textAlign: 'center',
         }}
       >
         <div className="container" style={{ maxWidth: 960 }}>
           <div
             className="badge badge-primary"
-            style={{ marginBottom: '1.25rem', padding: '0.4rem 1rem', fontSize: '0.8rem' }}
+            style={{ marginBottom: '1.25rem', padding: '0.4rem 1rem', fontSize: '0.8rem', maxWidth: '100%', whiteSpace: 'normal', lineHeight: 1.4 }}
           >
-            <Sparkles size={14} /> Full-Stack Production Architecture • Rebuilt from Legacy
+            <Sparkles size={14} style={{ flexShrink: 0 }} /> Full-Stack Production Architecture • Rebuilt from Legacy
           </div>
 
           <h1
             style={{
-              fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
+              fontSize: 'clamp(1.85rem, 6vw, 3.8rem)',
               letterSpacing: '-0.03em',
               lineHeight: 1.15,
               marginBottom: '1.25rem',
@@ -146,7 +146,7 @@ export default function LandingPage({ onNavigate }) {
 
       {/* Interactive Live Fare Calculator Preview */}
       <section className="container">
-        <div className="card card-glass" style={{ padding: '2rem' }}>
+        <div className="card card-glass" style={{ padding: 'clamp(1.15rem, 4vw, 2rem)' }}>
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <span className="badge badge-success" style={{ marginBottom: '0.5rem' }}>
               Transparent Slab Fare Engine
@@ -198,14 +198,14 @@ export default function LandingPage({ onNavigate }) {
 
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Vehicle Type</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.5rem' }}>
                   {Object.keys(VEHICLE_CONFIG).map((vKey) => (
                     <button
                       key={vKey}
                       type="button"
                       className={`btn btn-sm ${calcVehicle === vKey ? 'btn-primary' : 'btn-secondary'}`}
                       onClick={() => setCalcVehicle(vKey)}
-                      style={{ padding: '0.5rem' }}
+                      style={{ padding: '0.55rem 0.4rem', fontSize: '0.8rem' }}
                     >
                       {VEHICLE_CONFIG[vKey].icon} {VEHICLE_CONFIG[vKey].label.split(' ')[0]}
                     </button>
@@ -215,12 +215,12 @@ export default function LandingPage({ onNavigate }) {
 
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Ride Preference</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     className={`btn ${calcRideType === 'shared' ? 'btn-success' : 'btn-secondary'}`}
                     onClick={() => setCalcRideType('shared')}
-                    style={{ flex: 1 }}
+                    style={{ flex: '1 1 140px', padding: '0.6rem 0.5rem', fontSize: '0.85rem' }}
                   >
                     🤝 Shared Pool (Discounted)
                   </button>
@@ -228,7 +228,7 @@ export default function LandingPage({ onNavigate }) {
                     type="button"
                     className={`btn ${calcRideType === 'solo' ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={() => setCalcRideType('solo')}
-                    style={{ flex: 1 }}
+                    style={{ flex: '1 1 140px', padding: '0.6rem 0.5rem', fontSize: '0.85rem' }}
                   >
                     👤 Solo Private (1.5×)
                   </button>

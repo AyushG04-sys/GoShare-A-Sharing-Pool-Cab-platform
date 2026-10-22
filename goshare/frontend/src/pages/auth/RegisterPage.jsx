@@ -76,7 +76,7 @@ export default function RegisterPage({ onNavigate }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '2.5rem 1.5rem',
+        padding: 'clamp(1rem, 4vw, 2.5rem) 1rem',
         background: 'radial-gradient(ellipse at 50% 20%, rgba(16, 185, 129, 0.12), transparent 70%)',
       }}
     >
@@ -88,7 +88,7 @@ export default function RegisterPage({ onNavigate }) {
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-lg)',
           boxShadow: 'var(--shadow-lg)',
-          padding: '2.25rem',
+          padding: 'clamp(1.2rem, 5vw, 2.25rem)',
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
@@ -104,6 +104,7 @@ export default function RegisterPage({ onNavigate }) {
         <div
           style={{
             display: 'flex',
+            flexWrap: 'wrap',
             background: 'var(--bg-secondary)',
             padding: '0.35rem',
             borderRadius: 'var(--radius-md)',
@@ -116,7 +117,7 @@ export default function RegisterPage({ onNavigate }) {
             type="button"
             className={`btn ${role === 'user' ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setRole('user')}
-            style={{ flex: 1, padding: '0.65rem' }}
+            style={{ flex: '1 1 180px', padding: '0.65rem 0.5rem', fontSize: '0.85rem' }}
           >
             <User size={16} /> I want to Ride (Passenger)
           </button>
@@ -129,7 +130,7 @@ export default function RegisterPage({ onNavigate }) {
                 setGender('female');
               }
             }}
-            style={{ flex: 1, padding: '0.65rem' }}
+            style={{ flex: '1 1 180px', padding: '0.65rem 0.5rem', fontSize: '0.85rem' }}
           >
             <Car size={16} /> I want to Drive (Partner)
           </button>

@@ -47,7 +47,7 @@ export default function VehicleSelector({
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
         {VEHICLES.map((v) => {
           const estimate = estimates.find((e) => e.vehicleType === v.type);
           const isSelected = selectedVehicle === v.type;

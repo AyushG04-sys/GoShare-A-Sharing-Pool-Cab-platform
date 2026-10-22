@@ -58,7 +58,21 @@ export default function InteractiveMap({
       mapInstanceRef.current = map;
     }
 
+    // Auto-invalidate map size on viewport or container resize (crucial for mobile orientation changes)
+    let resizeObserver = null;
+    if (window.ResizeObserver && mapContainerRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      });
+      resizeObserver.observe(mapContainerRef.current);
+    }
+
     return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
@@ -299,14 +313,15 @@ export default function InteractiveMap({
     <div className="app-map-pane" style={{ position: 'relative' }}>
       <div ref={mapContainerRef} className="map-element" />
 
-      {/* Floating Re-center to User Location Button */}
+      {/* Floating Re-center to User Location Button (Positioned at top-left so it doesn't overlap Leaflet zoom controls) */}
       <button
         onClick={handleCenterOnUser}
         title="Re-center to my current location"
+        className="map-recenter-btn"
         style={{
           position: 'absolute',
           top: 14,
-          right: 14,
+          left: 14,
           zIndex: 1000,
           background: 'var(--surface)',
           border: '1px solid var(--border)',
@@ -321,10 +336,13 @@ export default function InteractiveMap({
           cursor: 'pointer',
           boxShadow: 'var(--shadow-md)',
           backdropFilter: 'blur(8px)',
+          maxWidth: 'calc(100% - 100px)',
         }}
       >
-        <Crosshair size={15} />
-        <span>{userLocation?.city ? `${userLocation.city}` : 'My Location'}</span>
+        <Crosshair size={15} style={{ flexShrink: 0 }} />
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {userLocation?.city ? `${userLocation.city}` : 'My Location'}
+        </span>
       </button>
 
       {/* Floating Hint Banner */}
